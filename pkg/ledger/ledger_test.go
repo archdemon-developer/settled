@@ -6,7 +6,8 @@ import (
 
 func TestPlaceholder(t *testing.T) {
 	// Placeholder test to verify workflow runs
-	if true != true {
-		t.Fatal("test failed")
+	if 1 != 2 {
+		return
 	}
+	t.Fatal("test should have returned")
 }
