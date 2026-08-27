@@ -1,0 +1,16 @@
+# All files require review from primary maintainer
+* @archdemon-developer
+
+# Ledger core (correctness critical)
+pkg/ledger/ @archdemon-developer
+pkg/db/ @archdemon-developer
+
+# Auth (security critical)
+pkg/auth/ @archdemon-developer
+
+# Tests
+*_test.go @archdemon-developer
+
+# Docs
+docs/ @archdemon-developer
+*.md @archdemon-developer
