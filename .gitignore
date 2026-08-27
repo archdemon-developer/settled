@@ -1,0 +1,40 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.so.*
+*.dylib
+dist/
+bin/
+
+# Test binaries
+*.test
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Env files (NEVER commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Go
+vendor/
+
+# Data
+data/
+*.db
+*.sqlite
+
+# Logs
+*.log
+logs/
+
+# Docker
+docker-compose.override.yml
