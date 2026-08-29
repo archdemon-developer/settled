@@ -1,0 +1,40 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Docs & logs
+*.md
+*.log
+README.md
+LICENSE
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Docker
+docker-compose.yml
+Dockerfile
+
+# Data & tests
+data/
+test/
+tests/
+
+# Build artifacts
+bin/
+dist/
+*.o
+*.a
+
+# Go
+go.sum.bak
+vendor/
