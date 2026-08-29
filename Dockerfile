@@ -12,9 +12,9 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a installsuffix cgo -o /app/bin/settled  ./cmd/main
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/bin/settled ./cmd/main
 
-FROM alphine:3.24
+FROM alpine:3.24
 
 WORKDIR /app
 
