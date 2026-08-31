@@ -21,7 +21,7 @@ linters:
       - '.*_test\.go'         # Exclude test files
       - test
       - tests
-
+      
 formatters:
   enable:
     - gofmt
