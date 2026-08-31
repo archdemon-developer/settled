@@ -1,6 +1,6 @@
 # Settled
 
-A production-grade double-entry ledger system built in Go.
+A double-entry ledger system built in Go.
 
 **Current Phase:** P0 - Local Development Setup
 
