@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/golang-migrate/migrate/v4"
@@ -22,5 +23,16 @@ func main() {
 		})
 	})
 
-	router.Run()
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		port = "8080"
+	}
+
+	fmt.Printf("Starting server on port %s\n", port)
+
+	if err := router.Run(":" + port); err != nil {
+		fmt.Printf("Failed to start server: %v\n", err)
+		os.Exit(1)
+	}
 }
