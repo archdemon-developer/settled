@@ -22,7 +22,7 @@ up:
 
 down:
 	@echo "🛑 Stopping services..."
-	docker compose down
+	docker compose down -v
 	@echo "✅ Services stopped"
 
 test:
