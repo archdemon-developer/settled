@@ -10,7 +10,6 @@ import (
 	_ "github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5"
 	_ "github.com/shopspring/decimal"
-	_ "github.com/stretchr/testify/assert"
 )
 
 func main() {
