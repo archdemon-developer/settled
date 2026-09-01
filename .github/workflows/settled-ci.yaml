@@ -26,12 +26,8 @@ jobs:
 
       - name: Run tests
         run: |
-          timeout 120 docker compose up -d
-          sleep 10
-          docker compose ps
-          docker compose logs migrate
           go test -v -race -coverprofile=coverage.out ./...
-
+          
       - name: Cleanup environment
         run: rm -f .env
         if: always()
