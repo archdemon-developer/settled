@@ -26,15 +26,7 @@ func TestIntegration_DockerCompose(t *testing.T) {
 
 	require.NoError(t, err, "Failed to start services with make up")
 	t.Log("Starting services with make up...")
-	//DEL BELOW
-	cmd1 := exec.Command("make", "logs")
-	cmd1.Dir = "../"
-	output1, err1 := cmd1.CombinedOutput()
-	if err1 != nil {
-		t.Logf("Failed to fetch logs: %v", err1)
-	}
-	t.Logf("Docker logs:\n%s", string(output1))
-	// DEL ABOVE
+
 	t.Log("Giving services time to start...")
 	time.Sleep(5 * time.Second)
 
