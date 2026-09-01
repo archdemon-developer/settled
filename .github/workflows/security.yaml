@@ -1,6 +1,9 @@
 name: Security Scans
 
 on:
+  workflow_run:
+    workflows: ["Test & Lint"]
+    types: [completed]
   push:
     branches: [main, release/*]
   pull_request:
