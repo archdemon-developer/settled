@@ -30,7 +30,7 @@ jobs:
           sleep 10
           docker compose ps
           docker compose logs migrate
-          go test -v -race -coverprofile=coverage.out -short ./...
+          go test -v -race -coverprofile=coverage.out ./...
 
       - name: Cleanup environment
         run: rm -f .env
