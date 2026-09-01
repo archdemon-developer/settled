@@ -25,7 +25,12 @@ jobs:
         run: cp .env.example .env
 
       - name: Run tests
-        run: go test -v -race -coverprofile=coverage.out ./...
+        run: |
+          timeout 120 docker compose up -d
+          sleep 10
+          docker compose ps
+          docker compose logs migrate
+          go test -v -race -coverprofile=coverage.out -short ./...
 
       - name: Cleanup environment
         run: rm -f .env
