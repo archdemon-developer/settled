@@ -36,6 +36,7 @@ jobs:
           version: latest
           args: --timeout=5m
   security:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Go Vulncheck
