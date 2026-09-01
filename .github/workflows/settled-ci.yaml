@@ -1,4 +1,4 @@
-name: Test & Lint
+name: Settled CI Full Pipeline Run
 
 on:
   push:
