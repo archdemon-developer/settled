@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
-	"os/exec"
 	"testing"
 	"time"
 
@@ -14,88 +13,79 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIntegration_DockerCompose(t *testing.T) {
-	if testing.Short() {
-		t.Skip("Skipping integration test in short mode")
-	}
+func TestIntegration_Services(t *testing.T) {
+	t.Log("Testing against running services...")
 
-	t.Log("Starting services with make up...")
-	cmd := exec.Command("make", "up")
-	cmd.Dir = "../"
-	err := cmd.Run()
-	require.NoError(t, err, "Failed to start services with make up")
+	t.Run("PostgreSQL", func(t *testing.T) {
+		db, err := sql.Open("pgx", "postgres://settled_usr:settled_dev@localhost:5432/settled?sslmode=disable")
+		require.NoError(t, err, "Failed to connect to PostgreSQL")
+		defer db.Close()
 
-	t.Log("Giving services time to start...")
-	time.Sleep(5 * time.Second)
+		err = db.Ping()
+		require.NoError(t, err, "PostgreSQL ping failed")
+		t.Log("✅ PostgreSQL connected")
+	})
 
-	defer func() {
-		t.Log("Stopping services with make down...")
-		cmd := exec.Command("make", "down")
-		cmd.Dir = "../"
-		err := cmd.Run()
-		require.NoError(t, err, "Failed to stop services with make down")
-	}()
+	t.Run("Redis", func(t *testing.T) {
+		rdb := redis.NewClient(&redis.Options{
+			Addr: "localhost:6379",
+		})
+		defer rdb.Close()
 
-	t.Log("Waiting for services to be ready...")
-	require.Eventually(t, func() bool { return waitForHealthy(t) }, 60*time.Second, 1*time.Second, "Services did not become ready in time")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
 
-	t.Log("Services are ready. Running integration tests...")
+		_, err := rdb.Ping(ctx).Result()
+		require.NoError(t, err, "Redis ping failed")
+		t.Log("✅ Redis connected")
+	})
 
-	t.Run("HealthEndpoint", func(t *testing.T) {
-		t.Log("Testing GET /health endpoint...")
-		resp, err := http.Get("http://localhost:8080/health")
+	t.Run("Database Schema", func(t *testing.T) {
+		db, err := sql.Open("pgx", "postgres://settled_usr:settled_dev@localhost:5432/settled?sslmode=disable")
 		require.NoError(t, err)
+		defer db.Close()
+
+		var schemaExists bool
+		err = db.QueryRow(`
+			SELECT EXISTS(
+				SELECT 1 FROM information_schema.schemata 
+				WHERE schema_name = 'settled'
+			)
+		`).Scan(&schemaExists)
+		require.NoError(t, err)
+		assert.True(t, schemaExists, "settled schema should exist")
+
+		var accountsTableExists bool
+		err = db.QueryRow(`
+			SELECT EXISTS(
+				SELECT 1 FROM information_schema.tables 
+				WHERE table_schema = 'settled' AND table_name = 'accounts'
+			)
+		`).Scan(&accountsTableExists)
+		require.NoError(t, err)
+		assert.True(t, accountsTableExists, "accounts table should exist")
+
+		var ledgerTableExists bool
+		err = db.QueryRow(`
+			SELECT EXISTS(
+				SELECT 1 FROM information_schema.tables 
+				WHERE table_schema = 'settled' AND table_name = 'ledger'
+			)
+		`).Scan(&ledgerTableExists)
+		require.NoError(t, err)
+		assert.True(t, ledgerTableExists, "ledger table should exist")
+
+		t.Log("✅ Database schema verified")
+	})
+
+	t.Run("Health Endpoint", func(t *testing.T) {
+		resp, err := http.Get("http://localhost:8080/health")
+		require.NoError(t, err, "Failed to reach health endpoint")
 		defer resp.Body.Close()
-		t.Logf("Health endpoint returned status: %d", resp.StatusCode)
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode, "Health endpoint should return 200")
+		t.Log("✅ Health endpoint healthy")
 	})
-}
 
-func waitForHealthy(t *testing.T) bool {
-	t.Log("Checking PostgreSQL...")
-	db, err := sql.Open("pgx", "postgres://settled_usr:settled_dev@localhost:5432/settled?sslmode=disable")
-	if err != nil {
-		t.Logf("PostgreSQL Open failed: %v", err)
-		return false
-	}
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil {
-		t.Logf("PostgreSQL Ping failed: %v", err)
-		return false
-	}
-	t.Log("PostgreSQL OK ✅")
-
-	t.Log("Checking Redis...")
-	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-	})
-	defer rdb.Close()
-
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
-
-	_, err = rdb.Ping(ctx).Result()
-	if err != nil {
-		t.Logf("Redis Ping failed: %v", err)
-		return false
-	}
-	t.Log("Redis OK ✅")
-
-	t.Log("Checking application health endpoint...")
-	resp, err := http.Get("http://localhost:8080/health")
-	if err != nil {
-		t.Logf("Health endpoint unreachable: %v", err)
-		return false
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		t.Logf("Health endpoint returned %d, expected 200", resp.StatusCode)
-		return false
-	}
-	t.Log("Application health endpoint OK ✅")
-
-	return true
+	t.Log("✅ All integration tests passed")
 }

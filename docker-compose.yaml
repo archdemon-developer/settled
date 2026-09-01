@@ -2,22 +2,38 @@ services:
   postgres:
     image: postgres:18-alpine
     container_name: settled-postgres
+    env_file: .env
     environment:
-      POSTGRES_USER: settled_usr
-      POSTGRES_PASSWORD: settled_dev
-      POSTGRES_DB: settled
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U settled_usr -d settled"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - settled-net
 
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/migrations
+    command: [
+      "-path", "/migrations",
+      "-database", "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable",
+      "up"
+    ]
+    env_file: .env
+    networks:
+      - settled-net
   redis:
     image: redis:8.10.1-alpine
     container_name: settled-redis
@@ -36,16 +52,19 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: settled-app
+    env_file: .env
     ports:
       - "8080:8080"
     environment:
-      DATABASE_URL: postgres://settled_usr:settled_dev@postgres:5432/settled
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}
       REDIS_URL: redis://redis:6379
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - settled-net
 
