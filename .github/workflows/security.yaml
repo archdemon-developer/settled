@@ -1,0 +1,26 @@
+name: Security Scans
+
+on:
+  push:
+    branches: [main, release/*]
+  pull_request:
+    branches: [main, release/*]
+
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: '1.27'
+      
+      - name: Download dependencies
+        run: go mod download
+      
+      - name: Run govulncheck
+        run: govulncheck ./...
