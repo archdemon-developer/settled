@@ -1,15 +1,11 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 
-<<<<<<< HEAD
-	"github.com/archdemon-developer/settled/pkg/db"
-=======
 	"github.com/archdemon-developer/settled/pkg/config"
->>>>>>> 0263637f5b616dec1c502b78132b1c1a6e5812f4
+
 	"github.com/archdemon-developer/settled/pkg/handler"
 	"github.com/gin-gonic/gin"
 	_ "github.com/golang-migrate/migrate/v4"
