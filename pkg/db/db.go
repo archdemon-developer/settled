@@ -3,29 +3,29 @@ package db
 import (
 	"context"
 	"fmt"
+	"time"
 
+	"github.com/archdemon-developer/settled/pkg/config"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func OpenDB(ctx context.Context, dbURL string) (*pgxpool.Pool, error) {
-	config, err := pgxpool.ParseConfig(dbURL)
+func OpenDB(ctx context.Context, dbURL string, cfg *config.Config) (*pgxpool.Pool, error) {
+	poolConfig, err := pgxpool.ParseConfig(dbURL)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse database URL: %w", err)
 	}
 
-	config.MaxConns = 10
+	poolConfig.MaxConns = int32(cfg.DbMaxConns)
+	poolConfig.MinConns = int32(cfg.DbMinIdle)
+	poolConfig.MaxConnLifetime = time.Duration(cfg.DbMaxLifetime) * time.Second
+	poolConfig.MaxConnIdleTime = time.Duration(cfg.DbMaxIdleTime) * time.Second
 
-	pool, err := config.ConnectPool(ctx)
+	dbPool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, fmt.Errorf("failed to create database connection pool: %w", err)
 	}
 
-	if err := pool.Ping(ctx); err != nil {
-		pool.Close()
-		return nil, fmt.Errorf("failed to ping database: %w", err)
-	}
-
-	return pool, nil
+	return dbPool, nil
 }

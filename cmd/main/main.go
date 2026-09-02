@@ -1,16 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/archdemon-developer/settled/pkg/config"
+	"github.com/archdemon-developer/settled/pkg/db"
 
 	"github.com/archdemon-developer/settled/pkg/handler"
 	"github.com/gin-gonic/gin"
-	_ "github.com/golang-migrate/migrate/v4"
 	_ "github.com/google/uuid"
-	_ "github.com/jackc/pgx/v5"
 	_ "github.com/shopspring/decimal"
 )
 
@@ -28,7 +28,20 @@ func main() {
 		cfg.RedisHost, cfg.RedisPort,
 		cfg.Port)
 
-	app := handler.NewApp(cfg)
+	dbURL := cfg.BuildDatabaseURL()
+
+	pool, err := db.OpenDB(context.Background(), dbURL, cfg)
+
+	if err != nil {
+		fmt.Printf("Failed to connect to database: %v\n", err)
+		os.Exit(1)
+	}
+
+	defer pool.Close()
+
+	fmt.Println("✅ Database connected")
+
+	app := handler.NewApp(pool)
 
 	router := gin.Default()
 

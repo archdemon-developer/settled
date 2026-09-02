@@ -3,16 +3,16 @@ package handler
 import (
 	"net/http"
 
-	"github.com/archdemon-developer/settled/pkg/config"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type App struct {
-	cfg *config.Config
+	db *pgxpool.Pool
 }
 
-func NewApp(cfg *config.Config) *App {
-	return &App{cfg: cfg}
+func NewApp(db *pgxpool.Pool) *App {
+	return &App{db: db}
 }
 
 func (a *App) GetHealth(c *gin.Context) {
