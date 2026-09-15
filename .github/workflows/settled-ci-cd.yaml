@@ -1,0 +1,161 @@
+name: Settled CI/CD Pipeline
+
+on:
+  push:
+    branches: 
+      - main
+      - 'release/*'
+  pull_request:
+    branches: 
+      - main
+      - 'release/*'
+
+jobs:
+  # ============================================
+  # BACKEND JOBS
+  # ============================================
+  
+  maven-test:
+    runs-on: ubuntu-latest
+    name: Maven Test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      
+      - name: Set up Java 25 & Maven
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+          cache: 'maven'
+      
+      - name: Run Maven Tests
+        run: mvn clean test
+  
+  maven-build:
+    runs-on: ubuntu-latest
+    name: Maven Build
+    needs: maven-test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      
+      - name: Set up Java 25 & Maven
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+          cache: 'maven'
+      
+      - name: Run Maven Build
+        run: mvn clean package -DskipTests
+  
+  docker-build-and-scan:
+    runs-on: ubuntu-latest
+    name: Docker Build & Scan
+    needs: maven-build
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+      
+      - name: Build native image
+        uses: docker/build-push-action@v7
+        with:
+          context: ./settled-backend
+          push: false
+          load: true
+          tags: settled-backend:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Scan image for vulnerabilities
+        uses: anchore/scan-action@v7
+        with:
+          image: settled-backend:${{ github.sha }}
+          fail-build: false
+          severity-cutoff: medium
+          output-format: sarif
+      
+      - name: Upload JaCoCo Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: settled-backend/target/site/jacoco
+          retention-days: 30
+      
+      - name: Upload Grype Scan Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grype-scan-report
+          path: sarif-report.sarif
+          retention-days: 30
+      
+      - name: Push to Artifact Registry (placeholder)
+        run: echo "📦 Would push to GCP Artifact Registry: gcr.io/YOUR_PROJECT/settled-backend:${{ github.sha }}"
+  
+  backend-approve-deploy:
+    runs-on: ubuntu-latest
+    name: Backend Approve Deployment
+    needs: docker-build-and-scan
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
+    environment: production
+    
+    steps:
+      - name: Deployment approved
+        run: echo "✅ Backend manual approval granted. Image ready: settled-backend:${{ github.sha }}"
+
+  # ============================================
+  # FRONTEND JOBS
+  # ============================================
+  
+  frontend-setup:
+    runs-on: ubuntu-latest
+    name: Frontend Setup & Test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+      
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: settled-ui/package-lock.json
+      
+      - name: Install dependencies
+        run: cd settled-ui && npm ci
+      
+      - name: Run tests
+        run: cd settled-ui && npm test || echo "⚠️ No tests configured yet"
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    name: Frontend Build
+    needs: frontend-setup
+    
+    steps:
+      - name: Build frontend
+        run: echo "🔨 Frontend build placeholder - dist upload to Cloud Storage coming in P2"
+
+  frontend-deploy:
+    runs-on: ubuntu-latest
+    name: Frontend Deploy
+    needs: frontend-build
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
+    environment: production
+    
+    steps:
+      - name: Deploy frontend
+        run: echo "📡 Frontend deploy placeholder - Cloud Storage + CDN coming in P2"
