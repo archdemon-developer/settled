@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*.iml
+
+# Build artifacts
+target/
+*.jar
+*.war
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CI/CD
+.github
+
+# Dependencies
+.m2
+
+# Local dev
+.env
+.env.local
+docker-compose.override.yml
