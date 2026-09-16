@@ -24,10 +24,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '25'
-          cache: 'maven'
       
       - name: Run Maven Tests
-        run: mvn clean test
+        run: cd settled-backend && mvn clean test
 
   maven-build:
     runs-on: ubuntu-latest
@@ -43,10 +42,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '25'
-          cache: 'maven'
       
       - name: Run Maven Build
-        run: mvn clean package -DskipTests
+        run: cd settled-backend && mvn clean package -DskipTests
   
   docker-build-and-scan:
     runs-on: ubuntu-latest
@@ -67,6 +65,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: ./settled-backend
+          dockerfile: ./settled-backend/Dockerfile
           push: false
           load: true
           tags: settled-backend:${{ github.sha }}
@@ -140,6 +139,9 @@ jobs:
     needs: frontend-setup
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
       - name: Build frontend
         run: echo "🔨 Frontend build placeholder - dist upload to Cloud Storage coming in P2"
 
