@@ -11,28 +11,23 @@ on:
       - 'release/*'
 
 jobs:
-  # ============================================
-  # BACKEND JOBS
-  # ============================================
-  
+
   maven-test:
     runs-on: ubuntu-latest
     name: Maven Test
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-      
+  
       - name: Set up Java 25 & Maven
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '25'
-          cache: 'maven'
       
       - name: Run Maven Tests
-        run: mvn clean test
-  
+        run: cd settled-backend && mvn clean test
+
   maven-build:
     runs-on: ubuntu-latest
     name: Maven Build
@@ -47,10 +42,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '25'
-          cache: 'maven'
       
       - name: Run Maven Build
-        run: mvn clean package -DskipTests
+        run: cd settled-backend && mvn clean package -DskipTests
   
   docker-build-and-scan:
     runs-on: ubuntu-latest
@@ -71,6 +65,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: ./settled-backend
+          dockerfile: ./settled-backend/Dockerfile
           push: false
           load: true
           tags: settled-backend:${{ github.sha }}
@@ -102,7 +97,8 @@ jobs:
           retention-days: 30
       
       - name: Push to Artifact Registry (placeholder)
-        run: echo "📦 Would push to GCP Artifact Registry: gcr.io/YOUR_PROJECT/settled-backend:${{ github.sha }}"
+        run: |
+          echo "📦 Would push to GCP Artifact Registry: gcr.io/YOUR_PROJECT/settled-backend:${{ github.sha }}"
   
   backend-approve-deploy:
     runs-on: ubuntu-latest
@@ -113,12 +109,9 @@ jobs:
     
     steps:
       - name: Deployment approved
-        run: echo "✅ Backend manual approval granted. Image ready: settled-backend:${{ github.sha }}"
+        run: |
+          echo "✅ Backend manual approval granted. Image ready: settled-backend:${{ github.sha }}"
 
-  # ============================================
-  # FRONTEND JOBS
-  # ============================================
-  
   frontend-setup:
     runs-on: ubuntu-latest
     name: Frontend Setup & Test
@@ -146,6 +139,9 @@ jobs:
     needs: frontend-setup
     
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
       - name: Build frontend
         run: echo "🔨 Frontend build placeholder - dist upload to Cloud Storage coming in P2"
 
