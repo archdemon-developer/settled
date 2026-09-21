@@ -1,4 +1,4 @@
-create Table transactions (
+CREATE TABLE transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     reference VARCHAR(100) NOT NULL UNIQUE,
     description TEXT,
