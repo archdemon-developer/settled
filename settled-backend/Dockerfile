@@ -1,21 +1,20 @@
-FROM ghcr.io/graalvm/native-image-community:25i3 AS builder
+FROM eclipse-temurin:25-jdk-alpine AS builder
 
-RUN microdnf install -y maven && microdnf clean all
-
-WORKDIR /app
+WORKDIR /build
 
 COPY pom.xml .
 COPY src ./src
 
-RUN mvn clean -Pnative native:compile
+RUN apk add --no-cache maven && \
+    mvn clean package -DskipTests
 
-FROM gcr.io/distroless/base-debian13
+FROM eclipse-temurin:25-jre-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app/target/settled-backend /app/settled-backend
+COPY --from=builder /build/target/settled-backend-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=builder /build/src/main/resources/db/migration ./db/migration
 
 EXPOSE 8080
 
-ENTRYPOINT ["/app/settled-backend"]
-CMD ["--server.port=8080"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
