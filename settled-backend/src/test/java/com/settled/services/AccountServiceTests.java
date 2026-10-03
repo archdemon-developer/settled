@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.settled.enums.AccountStatus;
+import com.settled.enums.AccountType;
 import com.settled.exceptions.DuplicateResourceException;
 import com.settled.exceptions.ResourceNotFoundException;
 import com.settled.models.entities.Account;
@@ -36,13 +37,13 @@ public class AccountServiceTests {
         Account account = Account.builder()
                 .code("ACC123")
                 .name("Test Account")
-                .type("SAVINGS")
+                .type(AccountType.SAVINGS)
                 .build();
 
         CreateAccountRequest request = CreateAccountRequest.builder()
                 .code("ACC123")
                 .name("Test Account")
-                .type("SAVINGS")
+                .type(AccountType.SAVINGS)
                 .build();
 
         when(accountRepository.findByCode("ACC123")).thenReturn(Optional.of(account));
@@ -54,13 +55,13 @@ public class AccountServiceTests {
         Account account = Account.builder()
                 .code("ACC123")
                 .name("Test Account")
-                .type("SAVINGS")
+                .type(AccountType.SAVINGS)
                 .build();
 
         CreateAccountRequest request = CreateAccountRequest.builder()
                 .code("ACC123")
                 .name("Test Account")
-                .type("SAVINGS")
+                .type(AccountType.SAVINGS)
                 .build();
 
         when(accountRepository.findByCode("ACC123")).thenReturn(Optional.empty());
@@ -89,7 +90,7 @@ public class AccountServiceTests {
                 .code("CODE123")
                 .name("ACC123")
                 .status(AccountStatus.ACTIVE)
-                .type("SAVINGS")
+                .type(AccountType.SAVINGS)
                 .build();
 
         when(accountRepository.findById(id)).thenReturn(Optional.of(account));
@@ -119,7 +120,7 @@ public class AccountServiceTests {
                 .code("CODE123")
                 .name("ACC123")
                 .status(AccountStatus.ACTIVE)
-                .type("SAVINGS")
+                .type(AccountType.SAVINGS)
                 .build();
 
         when(accountRepository.findByCode("CODE123")).thenReturn(Optional.of(account));
@@ -143,14 +144,14 @@ public class AccountServiceTests {
                         .code("CODE123")
                         .name("ACC123")
                         .status(AccountStatus.ACTIVE)
-                        .type("SAVINGS")
+                        .type(AccountType.SAVINGS)
                         .build(),
                 Account.builder()
                         .id(UUID.randomUUID())
                         .code("CODE456")
                         .name("ACC456")
                         .status(AccountStatus.ARCHIVED)
-                        .type("CHECKING")
+                        .type(AccountType.CHECKING)
                         .build());
 
         when(accountRepository.findAll()).thenReturn(accounts);
@@ -176,14 +177,14 @@ public class AccountServiceTests {
                         .code("CODE123")
                         .name("ACC123")
                         .status(AccountStatus.ACTIVE)
-                        .type("SAVINGS")
+                        .type(AccountType.SAVINGS)
                         .build(),
                 Account.builder()
                         .id(UUID.randomUUID())
                         .code("CODE456")
                         .name("ACC456")
                         .status(AccountStatus.ACTIVE)
-                        .type("CHECKING")
+                        .type(AccountType.CHECKING)
                         .build());
 
         when(accountRepository.findByStatus(AccountStatus.ACTIVE)).thenReturn(accounts);
@@ -210,7 +211,7 @@ public class AccountServiceTests {
                 .code("CODE123")
                 .name("ACC123")
                 .status(AccountStatus.ACTIVE)
-                .type("SAVINGS")
+                .type(AccountType.SAVINGS)
                 .build();
 
         when(accountRepository.findById(id)).thenReturn(Optional.of(account));

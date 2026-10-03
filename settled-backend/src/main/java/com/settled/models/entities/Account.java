@@ -2,6 +2,7 @@ package com.settled.models.entities;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.settled.enums.AccountStatus;
+import com.settled.enums.AccountType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -37,8 +38,9 @@ public class Account {
     @Column(nullable = false, length = 255)
     private String name;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private String type;
+    private AccountType type;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)

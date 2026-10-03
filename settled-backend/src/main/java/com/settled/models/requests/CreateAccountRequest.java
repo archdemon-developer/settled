@@ -1,6 +1,8 @@
 package com.settled.models.requests;
 
+import com.settled.enums.AccountType;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,6 +22,6 @@ public class CreateAccountRequest {
     @Size(min = 1, max = 255, message = "Name must be between 1 and 255 characters")
     private String name;
 
-    @NotBlank(message = "Type is required")
-    private String type;
+    @NotNull(message = "Type is required")
+    private AccountType type;
 }

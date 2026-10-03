@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.settled.enums.AccountStatus;
+import com.settled.enums.AccountType;
 import com.settled.models.entities.Account;
 import com.settled.models.responses.AccountResponse;
 import java.time.Instant;
@@ -21,7 +22,7 @@ public class MapperUtilsTests {
                         .id(UUID.randomUUID())
                         .code("ACC001")
                         .name("Cash")
-                        .type("ASSET")
+                        .type(AccountType.SAVINGS)
                         .status(AccountStatus.ACTIVE)
                         .createdAt(Instant.now())
                         .build(),
@@ -29,7 +30,7 @@ public class MapperUtilsTests {
                         .id(UUID.randomUUID())
                         .code("ACC002")
                         .name("Bank")
-                        .type("ASSET")
+                        .type(AccountType.CHECKING)
                         .status(AccountStatus.ACTIVE)
                         .createdAt(Instant.now())
                         .build());
@@ -50,7 +51,7 @@ public class MapperUtilsTests {
                 .id(UUID.randomUUID())
                 .code("ACC001")
                 .name("Cash")
-                .type("ASSET")
+                .type(AccountType.CHECKING)
                 .status(AccountStatus.ACTIVE)
                 .createdAt(now)
                 .updatedAt(null)
@@ -66,5 +67,10 @@ public class MapperUtilsTests {
         assertEquals(account.getStatus(), response.getStatus());
         assertEquals(account.getCreatedAt(), response.getCreatedAt());
         assertNull(response.getUpdatedAt());
+    }
+
+    void shouldMapNullAccountToNullAccountResponse() {
+        AccountResponse response = MapperUtil.toAccountResponse(null);
+        assertNull(response);
     }
 }

@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.settled.enums.AccountStatus;
+import com.settled.enums.AccountType;
 import com.settled.enums.ErrorCode;
 import com.settled.exceptions.DuplicateResourceException;
 import com.settled.models.requests.CreateAccountRequest;
@@ -26,7 +27,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(AccountController.class)
-class AccountControllerTest {
+public class AccountControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,7 +42,7 @@ class AccountControllerTest {
                 .id(UUID.randomUUID())
                 .code("ACC001")
                 .name("Cash")
-                .type("ASSET")
+                .type(AccountType.SAVINGS)
                 .status(AccountStatus.ACTIVE)
                 .createdAt(Instant.now())
                 .updatedAt(null)
@@ -55,7 +56,7 @@ class AccountControllerTest {
                     {
                         "code": "ACC001",
                         "name": "Cash",
-                        "type": "ASSET"
+                        "type": "SAVINGS"
                     }
                     """))
                 .andExpect(status().isCreated())
@@ -76,7 +77,7 @@ class AccountControllerTest {
                 .id(accountId)
                 .code("ACC001")
                 .name("Cash")
-                .type("ASSET")
+                .type(AccountType.SAVINGS)
                 .status(AccountStatus.ACTIVE)
                 .createdAt(Instant.now())
                 .updatedAt(null)
@@ -90,7 +91,7 @@ class AccountControllerTest {
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.code").value("ACC001"))
                 .andExpect(jsonPath("$.data.name").value("Cash"))
-                .andExpect(jsonPath("$.data.type").value("ASSET"))
+                .andExpect(jsonPath("$.data.type").value("SAVINGS"))
                 .andExpect(jsonPath("$.requestId").exists());
 
         verify(accountService).getById(accountId);
@@ -103,7 +104,7 @@ class AccountControllerTest {
                 .id(accountId)
                 .code("ACC001")
                 .name("Cash")
-                .type("ASSET")
+                .type(AccountType.SAVINGS)
                 .status(AccountStatus.ACTIVE)
                 .createdAt(Instant.now())
                 .updatedAt(null)
@@ -129,7 +130,7 @@ class AccountControllerTest {
                         .id(UUID.randomUUID())
                         .code("ACC001")
                         .name("Cash")
-                        .type("ASSET")
+                        .type(AccountType.SAVINGS)
                         .status(AccountStatus.ACTIVE)
                         .createdAt(Instant.now())
                         .build(),
@@ -137,7 +138,7 @@ class AccountControllerTest {
                         .id(UUID.randomUUID())
                         .code("ACC002")
                         .name("Bank")
-                        .type("ASSET")
+                        .type(AccountType.CHECKING)
                         .status(AccountStatus.ACTIVE)
                         .createdAt(Instant.now())
                         .build());
@@ -162,7 +163,7 @@ class AccountControllerTest {
                 .id(UUID.randomUUID())
                 .code("ACC001")
                 .name("Cash")
-                .type("ASSET")
+                .type(AccountType.SAVINGS)
                 .status(AccountStatus.ACTIVE)
                 .createdAt(Instant.now())
                 .build());
@@ -189,7 +190,7 @@ class AccountControllerTest {
                 .id(accountId)
                 .code("ACC001")
                 .name("Cash")
-                .type("ASSET")
+                .type(AccountType.SAVINGS)
                 .status(AccountStatus.ARCHIVED)
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
@@ -210,7 +211,7 @@ class AccountControllerTest {
     }
 
     @Test
-    void shouldReturn409WhenCreatingAccountWithDuplicateCode() throws Exception {
+    void shouldReturn409WithDuplicateCode() throws Exception {
         DuplicateResourceException ex = new DuplicateResourceException(
                 ErrorCode.DUPLICATE_ACCOUNT_CODE, "Code 'ACC001' already exists", "code");
 
@@ -222,7 +223,7 @@ class AccountControllerTest {
                 {
                     "code": "ACC001",
                     "name": "Cash",
-                    "type": "ASSET"
+                    "type": "SAVINGS"
                 }
                 """))
                 .andExpect(status().isConflict())
