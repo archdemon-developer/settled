@@ -179,6 +179,7 @@
                                 <exclude>com/settled/Application.class</exclude>
                                 <exclude>com/settled/models/*</exclude>
                                 <exclude>com/settled/repositories/*</exclude>
+                                <exclude>com/settled/exceptions/*</exclude>
                             </excludes>
                         </configuration>
                     </execution>
@@ -192,6 +193,7 @@
                                 <exclude>com/settled/Application.class</exclude>
                                 <exclude>com/settled/models/*</exclude>
                                 <exclude>com/settled/repositories/*</exclude>
+                                <exclude>com/settled/exceptions/*</exclude>
                             </excludes>
                             <rules>
                                 <rule>

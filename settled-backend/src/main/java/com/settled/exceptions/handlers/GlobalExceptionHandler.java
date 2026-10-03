@@ -1,4 +1,4 @@
-package com.settled.handlers;
+package com.settled.exceptions.handlers;
 
 import com.settled.enums.ErrorCode;
 import com.settled.exceptions.SettledException;
