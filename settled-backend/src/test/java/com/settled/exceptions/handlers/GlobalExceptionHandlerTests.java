@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 import com.settled.enums.ErrorCode;
 import com.settled.exceptions.DuplicateResourceException;
 import com.settled.exceptions.ResourceNotFoundException;
-import com.settled.models.ApiResponse;
+import com.settled.models.ResponseWrapper;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ public class GlobalExceptionHandlerTests {
         ResourceNotFoundException ex =
                 new ResourceNotFoundException(ErrorCode.ACCOUNT_NOT_FOUND, "Account with ID abc-123 not found");
 
-        ResponseEntity<ApiResponse<?>> response = globalExceptionHandler.handleSettledException(ex);
+        ResponseEntity<ResponseWrapper<?>> response = globalExceptionHandler.handleSettledException(ex);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -58,7 +58,7 @@ public class GlobalExceptionHandlerTests {
         DuplicateResourceException ex = new DuplicateResourceException(
                 ErrorCode.DUPLICATE_ACCOUNT_CODE, "Code 'ACC001' already exists", "code");
 
-        ResponseEntity<ApiResponse<?>> response = globalExceptionHandler.handleSettledException(ex);
+        ResponseEntity<ResponseWrapper<?>> response = globalExceptionHandler.handleSettledException(ex);
 
         assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -78,7 +78,7 @@ public class GlobalExceptionHandlerTests {
     void shouldHandleGenericException() {
         Exception ex = new RuntimeException("Database connection failed");
 
-        ResponseEntity<ApiResponse<?>> response = globalExceptionHandler.handleGenericException(ex);
+        ResponseEntity<ResponseWrapper<?>> response = globalExceptionHandler.handleGenericException(ex);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -103,7 +103,7 @@ public class GlobalExceptionHandlerTests {
         when(ex.getBindingResult()).thenReturn(bindingResult);
         when(bindingResult.getFieldErrors()).thenReturn(List.of(fieldError1, fieldError2));
 
-        ResponseEntity<ApiResponse<?>> response = globalExceptionHandler.handleValidationException(ex);
+        ResponseEntity<ResponseWrapper<?>> response = globalExceptionHandler.handleValidationException(ex);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());

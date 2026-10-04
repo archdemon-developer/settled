@@ -2,7 +2,7 @@ package com.settled.exceptions.handlers;
 
 import com.settled.enums.ErrorCode;
 import com.settled.exceptions.SettledException;
-import com.settled.models.ApiResponse;
+import com.settled.models.ResponseWrapper;
 import com.settled.models.ErrorDetails;
 import com.settled.models.FieldViolation;
 import java.time.Instant;
@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
     private static final String REQUEST_ID = UUID.randomUUID().toString();
 
     @ExceptionHandler(SettledException.class)
-    public ResponseEntity<ApiResponse<?>> handleSettledException(SettledException ex) {
+    public ResponseEntity<ResponseWrapper<?>> handleSettledException(SettledException ex) {
         ErrorCode errorCode = ex.getErrorCode();
 
         ErrorDetails errorDetails = ErrorDetails.builder()
@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
                 .field(ex.getField())
                 .build();
 
-        ApiResponse<?> response = ApiResponse.builder()
+        ResponseWrapper<?> response = ResponseWrapper.builder()
                 .status("ERROR")
                 .code(errorCode.getHttpStatus().value())
                 .timestamp(Instant.now())
@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<?>> handleValidationException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ResponseWrapper<?>> handleValidationException(MethodArgumentNotValidException ex) {
         List<FieldViolation> violations = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> FieldViolation.builder()
                         .field(error.getField())
@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
                 .violations(violations)
                 .build();
 
-        ApiResponse<?> response = ApiResponse.builder()
+        ResponseWrapper<?> response = ResponseWrapper.builder()
                 .status("ERROR")
                 .code(HttpStatus.BAD_REQUEST.value())
                 .timestamp(Instant.now())
@@ -69,7 +69,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<?>> handleGenericException(Exception ex) {
+    public ResponseEntity<ResponseWrapper<?>> handleGenericException(Exception ex) {
         log.error("Unexpected error", ex);
 
         ErrorDetails errorDetails = ErrorDetails.builder()
@@ -78,7 +78,7 @@ public class GlobalExceptionHandler {
                 .details(ex.getMessage())
                 .build();
 
-        ApiResponse<?> response = ApiResponse.builder()
+        ResponseWrapper<?> response = ResponseWrapper.builder()
                 .status("ERROR")
                 .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .timestamp(Instant.now())
