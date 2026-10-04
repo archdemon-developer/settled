@@ -62,14 +62,9 @@ public class AccountService {
     }
 
     public List<AccountResponse> listByStatus(AccountStatus status) {
-        if (ObjectUtils.isEmpty(status)) {
-            return accountRepository.findAll().stream()
-                    .map(MapperUtil::toAccountResponse)
-                    .toList();
-        }
-        return accountRepository.findByStatus(status).stream()
-                .map(MapperUtil::toAccountResponse)
-                .toList();
+        return ObjectUtils.isEmpty(status)
+                ? MapperUtil.toAccountResponseList(accountRepository.findAll())
+                : MapperUtil.toAccountResponseList(accountRepository.findByStatus(status));
     }
 
     @Transactional
