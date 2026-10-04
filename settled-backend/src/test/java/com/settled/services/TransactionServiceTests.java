@@ -299,6 +299,18 @@ public class TransactionServiceTests {
     }
 
     @Test
+    public void testMarkAsPosted_TransactionNotFound() {
+        UUID txnId = UUID.randomUUID();
+        when(transactionRepository.findById(txnId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> transactionService.markAsPosted(txnId));
+
+        verify(transactionRepository, times(1)).findById(txnId);
+        verify(postingRepository, never()).findByTransactionId(any());
+        verify(transactionRepository, never()).save(any());
+    }
+
+    @Test
     public void testMarkAsPosted_NotInDraftState() {
         UUID txnId = UUID.randomUUID();
 

@@ -13,6 +13,7 @@ import com.settled.enums.AccountStatus;
 import com.settled.enums.AccountType;
 import com.settled.enums.ErrorCode;
 import com.settled.exceptions.DuplicateResourceException;
+import com.settled.exceptions.ResourceNotFoundException;
 import com.settled.models.requests.CreateAccountRequest;
 import com.settled.models.responses.AccountResponse;
 import com.settled.services.AccountService;
@@ -25,12 +26,16 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 @WebMvcTest(AccountController.class)
 public class AccountControllerTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockitoBean
     private AccountService accountService;
@@ -235,5 +240,38 @@ public class AccountControllerTests {
                 .andExpect(jsonPath("$.requestId").exists());
 
         verify(accountService).create(any(CreateAccountRequest.class));
+    }
+
+    @Test
+    void shouldReturn404WhenAccountNotFound() throws Exception {
+        UUID accountId = UUID.randomUUID();
+
+        when(accountService.getById(accountId))
+                .thenThrow(new ResourceNotFoundException(ErrorCode.ACCOUNT_NOT_FOUND, "Account not found"));
+
+        mockMvc.perform(get("/api/v1/accounts/" + accountId).contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("ERROR"))
+                .andExpect(jsonPath("$.code").value(404))
+                .andExpect(jsonPath("$.requestId").exists());
+
+        verify(accountService).getById(accountId);
+    }
+
+    @Test
+    void shouldReturn400WithInvalidAccountRequest() throws Exception {
+        CreateAccountRequest request = CreateAccountRequest.builder()
+                .code("") // Blank code - invalid
+                .name("Invalid Account")
+                .type(AccountType.SAVINGS)
+                .build();
+
+        mockMvc.perform(post("/api/v1/accounts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value("ERROR"))
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.requestId").exists());
     }
 }

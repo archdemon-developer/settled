@@ -7,11 +7,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.settled.enums.AccountStatus;
 import com.settled.enums.AccountType;
+import com.settled.enums.PostingDirection;
 import com.settled.enums.TransactionStatus;
 import com.settled.models.entities.Account;
+import com.settled.models.entities.Posting;
 import com.settled.models.entities.Transaction;
 import com.settled.models.responses.AccountResponse;
+import com.settled.models.responses.PostingResponse;
+import com.settled.models.responses.TransactionDetailResponse;
 import com.settled.models.responses.TransactionResponse;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -72,6 +77,7 @@ public class MapperUtilsTests {
         assertNull(response.getUpdatedAt());
     }
 
+    @Test
     void shouldMapNullAccountToNullAccountResponse() {
         AccountResponse response = MapperUtil.toAccountResponse(null);
         assertNull(response);
@@ -128,7 +134,7 @@ public class MapperUtilsTests {
                 .id(txnId2)
                 .reference("TXN002")
                 .status(TransactionStatus.POSTED)
-                .postedAt(now)
+                .postedAt(null)
                 .createdAt(now)
                 .build();
 
@@ -138,5 +144,116 @@ public class MapperUtilsTests {
         assertEquals(2, responses.size());
         assertEquals("TXN001", responses.get(0).getReference());
         assertEquals("TXN002", responses.get(1).getReference());
+    }
+
+    @Test
+    public void testToPostingResponse_AllFieldsMapped() {
+        UUID postingId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
+        Instant now = Instant.now();
+
+        Account account = Account.builder().id(accountId).code("ACC001").build();
+
+        Posting posting = Posting.builder()
+                .id(postingId)
+                .account(account)
+                .amount(new BigDecimal("100.00"))
+                .direction(PostingDirection.DEBIT)
+                .createdAt(now)
+                .build();
+
+        PostingResponse response = MapperUtil.toPostingResponse(posting);
+
+        assertNotNull(response);
+        assertEquals(postingId, response.getId());
+        assertEquals(accountId, response.getAccountId());
+        assertEquals(new BigDecimal("100.00"), response.getAmount());
+        assertEquals(PostingDirection.DEBIT, response.getDirection());
+        assertEquals(now, response.getCreatedAt());
+    }
+
+    @Test
+    public void testToPostingResponse_NullPosting() {
+        PostingResponse response = MapperUtil.toPostingResponse(null);
+        assertNull(response);
+    }
+
+    @Test
+    public void testToPostingResponseList() {
+        UUID postingId1 = UUID.randomUUID();
+        UUID postingId2 = UUID.randomUUID();
+        UUID accountId1 = UUID.randomUUID();
+        UUID accountId2 = UUID.randomUUID();
+        Instant now = Instant.now();
+
+        Account account1 = Account.builder().id(accountId1).code("ACC001").build();
+        Account account2 = Account.builder().id(accountId2).code("ACC002").build();
+
+        Posting posting1 = Posting.builder()
+                .id(postingId1)
+                .account(account1)
+                .amount(new BigDecimal("100.00"))
+                .direction(PostingDirection.DEBIT)
+                .createdAt(now)
+                .build();
+
+        Posting posting2 = Posting.builder()
+                .id(postingId2)
+                .account(account2)
+                .amount(new BigDecimal("100.00"))
+                .direction(PostingDirection.CREDIT)
+                .createdAt(now)
+                .build();
+
+        List<PostingResponse> responses = MapperUtil.toPostingResponseList(List.of(posting1, posting2));
+
+        assertNotNull(responses);
+        assertEquals(2, responses.size());
+        assertEquals(postingId1, responses.get(0).getId());
+        assertEquals(postingId2, responses.get(1).getId());
+    }
+
+    @Test
+    public void testToTransactionDetailResponse_AllFieldsMapped() {
+        UUID txnId = UUID.randomUUID();
+        UUID postingId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
+        Instant now = Instant.now();
+
+        Transaction transaction = Transaction.builder()
+                .id(txnId)
+                .reference("TXN001")
+                .description("Test Transaction")
+                .status(TransactionStatus.DRAFT)
+                .postedAt(now)
+                .createdAt(now)
+                .updatedAt(null)
+                .build();
+
+        Account account = Account.builder().id(accountId).code("ACC001").build();
+
+        Posting posting = Posting.builder()
+                .id(postingId)
+                .account(account)
+                .amount(new BigDecimal("100.00"))
+                .direction(PostingDirection.DEBIT)
+                .createdAt(now)
+                .build();
+
+        TransactionDetailResponse response = MapperUtil.toTransactionDetailResponse(transaction, List.of(posting));
+
+        assertNotNull(response);
+        assertEquals(txnId, response.getId());
+        assertEquals("TXN001", response.getReference());
+        assertEquals("Test Transaction", response.getDescription());
+        assertEquals(TransactionStatus.DRAFT, response.getStatus());
+        assertEquals(1, response.getPostings().size());
+        assertEquals(postingId, response.getPostings().get(0).getId());
+    }
+
+    @Test
+    public void testToTransactionDetailResponse_NullTransaction() {
+        TransactionDetailResponse response = MapperUtil.toTransactionDetailResponse(null, List.of());
+        assertNull(response);
     }
 }
