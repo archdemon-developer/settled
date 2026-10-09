@@ -1,12 +1,16 @@
-FROM eclipse-temurin:25-jdk-alpine AS builder
+FROM maven:3.9-eclipse-temurin-25-alpine AS builder
 
 WORKDIR /build
 
 COPY pom.xml .
+
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn -B dependency:go-offline
+
 COPY src ./src
 
-RUN apk add --no-cache maven && \
-    mvn clean package -DskipTests
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn -B clean package -DskipTests
 
 FROM eclipse-temurin:25-jre-alpine
 
@@ -17,4 +21,4 @@ COPY --from=builder /build/src/main/resources/db/migration ./db/migration
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]   

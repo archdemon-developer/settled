@@ -2,9 +2,9 @@ package com.settled.exceptions.handlers;
 
 import com.settled.enums.ErrorCode;
 import com.settled.exceptions.SettledException;
-import com.settled.models.ResponseWrapper;
 import com.settled.models.ErrorDetails;
 import com.settled.models.FieldViolation;
+import com.settled.models.ResponseWrapper;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
