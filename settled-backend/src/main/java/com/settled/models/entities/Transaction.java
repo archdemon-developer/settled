@@ -1,5 +1,6 @@
 package com.settled.models.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.settled.enums.TransactionStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,7 +10,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,7 +38,8 @@ public class Transaction {
     private String description;
 
     @Column(nullable = false)
-    private ZonedDateTime postedAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+    private Instant postedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -46,9 +48,11 @@ public class Transaction {
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private ZonedDateTime createdAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+    private Instant createdAt;
 
     @UpdateTimestamp
-    @Column(nullable = false)
-    private ZonedDateTime updatedAt;
+    @Column
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+    private Instant updatedAt;
 }
