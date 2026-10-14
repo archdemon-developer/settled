@@ -11,14 +11,15 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    private static final String REQUEST_ID = UUID.randomUUID().toString();
 
     @ExceptionHandler(SettledException.class)
     public ResponseEntity<ResponseWrapper<?>> handleSettledException(SettledException ex) {
@@ -35,7 +36,7 @@ public class GlobalExceptionHandler {
                 .status("ERROR")
                 .code(errorCode.getHttpStatus().value())
                 .timestamp(Instant.now())
-                .requestId(REQUEST_ID)
+                .requestId(UUID.randomUUID().toString())
                 .error(errorDetails)
                 .build();
 
@@ -61,11 +62,55 @@ public class GlobalExceptionHandler {
                 .status("ERROR")
                 .code(HttpStatus.BAD_REQUEST.value())
                 .timestamp(Instant.now())
-                .requestId(REQUEST_ID)
+                .requestId(UUID.randomUUID().toString())
                 .error(errorDetails)
                 .build();
 
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ResponseWrapper<?>> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        ErrorCode errorCode = ErrorCode.INVALID_PARAMETER;
+
+        ErrorDetails errorDetails = ErrorDetails.builder()
+                .errorCode(errorCode.getCode())
+                .message(errorCode.getMessage())
+                .details(String.format("Parameter '%s' has an invalid value: '%s'", ex.getName(), ex.getValue()))
+                .field(ex.getName())
+                .build();
+
+        ResponseWrapper<?> response = ResponseWrapper.builder()
+                .status("ERROR")
+                .code(errorCode.getHttpStatus().value())
+                .timestamp(Instant.now())
+                .requestId(UUID.randomUUID().toString())
+                .error(errorDetails)
+                .build();
+
+        return new ResponseEntity<>(response, errorCode.getHttpStatus());
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ResponseWrapper<?>> handleUnreadableBodyException(HttpMessageNotReadableException ex) {
+
+        ErrorCode errorCode = ErrorCode.MALFORMED_REQUEST_BODY;
+
+        ErrorDetails errorDetails = ErrorDetails.builder()
+                .errorCode(errorCode.getCode())
+                .message(errorCode.getMessage())
+                .details("Request body is missing, is not valid JSON, or contains a value of the wrong type")
+                .build();
+
+        ResponseWrapper<?> response = ResponseWrapper.builder()
+                .status("ERROR")
+                .code(errorCode.getHttpStatus().value())
+                .timestamp(Instant.now())
+                .requestId(UUID.randomUUID().toString())
+                .error(errorDetails)
+                .build();
+
+        return new ResponseEntity<>(response, errorCode.getHttpStatus());
     }
 
     @ExceptionHandler(Exception.class)
@@ -75,14 +120,13 @@ public class GlobalExceptionHandler {
         ErrorDetails errorDetails = ErrorDetails.builder()
                 .errorCode("INTERNAL_ERROR")
                 .message("An unexpected error occurred")
-                .details(ex.getMessage())
                 .build();
 
         ResponseWrapper<?> response = ResponseWrapper.builder()
                 .status("ERROR")
                 .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .timestamp(Instant.now())
-                .requestId(REQUEST_ID)
+                .requestId(UUID.randomUUID().toString())
                 .error(errorDetails)
                 .build();
 

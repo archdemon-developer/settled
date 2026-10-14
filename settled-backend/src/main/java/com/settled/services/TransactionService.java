@@ -90,6 +90,12 @@ public class TransactionService {
 
         List<Posting> postings = postingRepository.findByTransactionId(id);
 
+        if (postings.isEmpty()) {
+            throw new InvalidPostingException(
+                    ErrorCode.TRANSACTION_HAS_NO_POSTINGS,
+                    "Transaction has no postings. Add at least one debit and one credit before posting.");
+        }
+
         BigDecimal totalDebits = postings.stream()
                 .filter(posting -> posting.getDirection() == PostingDirection.DEBIT)
                 .map(posting -> posting.getAmount())
