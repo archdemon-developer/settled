@@ -1,5 +1,16 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import AppHeader from './components/layout/AppHeader.vue';
+import AppSidebar from './components/layout/AppSidebar.vue';
+import AppFooter from './components/layout/AppFooter.vue';
+</script>
 
 <template>
-  <h1 class="p-8 text-3xl font-bold text-blue-600">Settled</h1>
+  <div class="flex min-h-screen flex-col">
+    <AppHeader />
+    <div class="flex flex-1">
+      <AppSidebar />
+      <main class="flex-1 p-6"></main>
+    </div>
+    <AppFooter />
+  </div>
 </template>
