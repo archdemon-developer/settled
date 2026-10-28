@@ -1,17 +1,16 @@
 package com.settled;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
+import com.settled.configuration.PostgresContainerConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(PostgresContainerConfiguration.class)
 public class SettledApplicationTests {
 
     @Test
-    public void contextLoads() {
-        assertTrue(true);
-    }
+    public void contextLoads() {}
 }
