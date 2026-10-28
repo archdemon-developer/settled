@@ -13,6 +13,7 @@ import com.settled.exceptions.InvalidPostingException;
 import com.settled.exceptions.ResourceNotFoundException;
 import com.settled.models.requests.CreatePostingRequest;
 import com.settled.models.requests.CreateTransactionRequest;
+import com.settled.models.responses.PostingResponse;
 import com.settled.models.responses.TransactionDetailResponse;
 import com.settled.models.responses.TransactionResponse;
 import com.settled.services.LedgerService;
@@ -130,7 +131,7 @@ class TransactionControllerTests {
                         .createdAt(now)
                         .build());
 
-        when(transactionService.listByStatus(TransactionStatus.DRAFT)).thenReturn(List.of(responses.get(0)));
+        when(transactionService.listByStatus(TransactionStatus.DRAFT)).thenReturn(List.of(responses.getFirst()));
 
         mockMvc.perform(get("/api/v1/transactions?status=DRAFT").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -263,5 +264,41 @@ class TransactionControllerTests {
                 .andExpect(jsonPath("$.status").value("ERROR"))
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.requestId").exists());
+    }
+
+    @Test
+    void shouldSerializePostingAmountAsString() throws Exception {
+        UUID txnId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
+        Instant now = Instant.now();
+
+        CreatePostingRequest request = CreatePostingRequest.builder()
+                .accountId(accountId)
+                .amount(new BigDecimal("100.50"))
+                .direction(PostingDirection.DEBIT)
+                .build();
+
+        TransactionDetailResponse response = TransactionDetailResponse.builder()
+                .id(txnId)
+                .reference("TXN001")
+                .status(TransactionStatus.DRAFT)
+                .postedAt(now)
+                .createdAt(now)
+                .postings(List.of(PostingResponse.builder()
+                        .id(UUID.randomUUID())
+                        .accountId(accountId)
+                        .amount(new BigDecimal("100.50"))
+                        .direction(PostingDirection.DEBIT)
+                        .createdAt(now)
+                        .build()))
+                .build();
+
+        when(ledgerService.addPosting(txnId, request)).thenReturn(response);
+
+        mockMvc.perform(post("/api/v1/transactions/" + txnId + "/postings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.data.postings[0].amount").value("100.50"));
     }
 }
