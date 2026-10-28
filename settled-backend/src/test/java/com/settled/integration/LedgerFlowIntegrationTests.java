@@ -242,6 +242,23 @@ public class LedgerFlowIntegrationTests {
                 .isEqualTo("amount");
     }
 
+    @Test
+    public void testAddPosting_acceptsAmountAsString_andReturnsItAsString() {
+        String checking = createAccount("CHK001", "CHECKING");
+        String transactionId = createTransaction();
+
+        client.post()
+                .uri("/api/v1/transactions/{id}/postings", transactionId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("accountId", checking, "amount", "100.50", "direction", "DEBIT"))
+                .exchange()
+                .expectStatus()
+                .isCreated()
+                .expectBody()
+                .jsonPath("$.data.postings[0].amount")
+                .isEqualTo("100.50");
+    }
+
     private String createBalancedTransaction(String debitAccountId, String creditAccountId) {
         String transactionId = createTransaction();
         addPosting(transactionId, debitAccountId, "100.00", "DEBIT");

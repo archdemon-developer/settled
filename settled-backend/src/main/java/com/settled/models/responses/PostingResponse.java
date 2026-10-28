@@ -17,7 +17,10 @@ import lombok.NoArgsConstructor;
 public class PostingResponse {
     private UUID id;
     private UUID accountId;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private BigDecimal amount;
+
     private PostingDirection direction;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
