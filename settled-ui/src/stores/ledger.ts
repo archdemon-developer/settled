@@ -9,6 +9,7 @@ export const useLedgerStore = defineStore('ledger', () => {
   const activeAccounts = computed(() =>
     accounts.value.filter((account) => account.status === 'ACTIVE'),
   );
+
   const draftTransactions = computed(() =>
     transactions.value.filter((transaction) => transaction.status === 'DRAFT'),
   );
