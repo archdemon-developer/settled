@@ -51,6 +51,17 @@ export const useLedgerStore = defineStore('ledger', () => {
     return archivedAccount;
   }
 
+  async function fetchAccount(accountId: string): Promise<Account> {
+    const account = await accountsApi.getAccount(accountId);
+    const index = accounts.value.findIndex((a) => a.id === accountId);
+    if (index === -1) {
+      addAccount(account);
+    } else {
+      accounts.value[index] = account;
+    }
+    return account;
+  }
+
   return {
     accounts,
     transactions,
@@ -63,5 +74,6 @@ export const useLedgerStore = defineStore('ledger', () => {
     fetchAccounts,
     createAccount,
     archiveAccount,
+    fetchAccount,
   };
 });
