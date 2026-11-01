@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
-import type { Account, Transaction } from '../types/api';
+import type { Account, CreateAccountRequest, Transaction } from '../types/api';
+import * as accountsApi from '../api/accounts';
 
 export const useLedgerStore = defineStore('ledger', () => {
   const accounts = ref<Account[]>([]);
@@ -30,6 +31,26 @@ export const useLedgerStore = defineStore('ledger', () => {
     transactions.value.push(transaction);
   }
 
+  async function fetchAccounts(): Promise<void> {
+    const fetchedAccounts = await accountsApi.listAccounts();
+    setAccounts(fetchedAccounts);
+  }
+
+  async function createAccount(request: CreateAccountRequest): Promise<Account> {
+    const newAccount = await accountsApi.createAccount(request);
+    addAccount(newAccount);
+    return newAccount;
+  }
+
+  async function archiveAccount(accountId: string): Promise<Account> {
+    const archivedAccount = await accountsApi.archiveAccount(accountId);
+    const index = accounts.value.findIndex((account) => account.id === accountId);
+    if (index !== -1) {
+      accounts.value[index] = archivedAccount;
+    }
+    return archivedAccount;
+  }
+
   return {
     accounts,
     transactions,
@@ -39,5 +60,8 @@ export const useLedgerStore = defineStore('ledger', () => {
     addAccount,
     setTransactions,
     addTransaction,
+    fetchAccounts,
+    createAccount,
+    archiveAccount,
   };
 });
