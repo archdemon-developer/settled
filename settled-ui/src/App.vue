@@ -9,7 +9,9 @@ import AppFooter from './components/layout/AppFooter.vue';
     <AppHeader />
     <div class="flex flex-1">
       <AppSidebar />
-      <main class="flex-1 p-6"></main>
+      <main class="flex-1 p-6">
+        <RouterView />
+      </main>
     </div>
     <AppFooter />
   </div>
