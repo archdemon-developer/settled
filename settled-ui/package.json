@@ -9,6 +9,9 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "coverage": "vitest run --coverage",
     "format": "prettier --write \"src/**/*.{ts,vue}\" vite.config.ts eslint.config.mjs",
     "format:check": "prettier --check \"src/**/*.{ts,vue}\" vite.config.ts eslint.config.mjs"
   },
