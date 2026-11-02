@@ -1,11 +1,19 @@
-export type AccountType =
-  'CHECKING' | 'SAVINGS' | 'MONEY MARKET' | 'CERTIFICATE OF DEPOSIT' | 'CREDIT CARD' | 'LOAN';
-
 export type AccountStatus = 'ACTIVE' | 'ARCHIVED';
 
 export type TransactionStatus = 'DRAFT' | 'POSTED' | 'REVERSED';
 
 export type PostingDirection = 'DEBIT' | 'CREDIT';
+
+export const ACCOUNT_TYPES = [
+  'CHECKING',
+  'SAVINGS',
+  'MONEY_MARKET',
+  'CERTIFICATE_OF_DEPOSIT',
+  'CREDIT_CARD',
+  'LOAN',
+] as const;
+
+export type AccountType = (typeof ACCOUNT_TYPES)[number];
 
 export interface Account {
   id: string;
