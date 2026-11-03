@@ -9,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.settled.enums.ErrorCode;
 import com.settled.enums.PostingDirection;
 import com.settled.enums.TransactionStatus;
 import com.settled.exceptions.DuplicateResourceException;
@@ -235,6 +236,30 @@ public class TransactionServiceTests {
 
         verify(transactionRepository, times(1)).findAll();
         verify(transactionRepository, never()).findByStatus(any());
+    }
+
+    @Test
+    public void testMarkAsPosted_NoPostings() {
+        UUID txnId = UUID.randomUUID();
+
+        Transaction transaction = Transaction.builder()
+                .id(txnId)
+                .reference("TXN001")
+                .status(TransactionStatus.DRAFT)
+                .postedAt(Instant.now())
+                .createdAt(Instant.now())
+                .build();
+
+        when(transactionRepository.findById(txnId)).thenReturn(Optional.of(transaction));
+        when(postingRepository.findByTransactionId(txnId)).thenReturn(List.of());
+
+        InvalidPostingException ex =
+                assertThrows(InvalidPostingException.class, () -> transactionService.markAsPosted(txnId));
+
+        assertEquals(ErrorCode.TRANSACTION_HAS_NO_POSTINGS, ex.getErrorCode());
+
+        verify(postingRepository, times(1)).findByTransactionId(txnId);
+        verify(transactionRepository, never()).save(any());
     }
 
     @Test

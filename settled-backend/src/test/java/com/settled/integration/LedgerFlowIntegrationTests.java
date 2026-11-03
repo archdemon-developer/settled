@@ -66,6 +66,32 @@ public class LedgerFlowIntegrationTests {
     }
 
     @Test
+    public void testPost_noPostings_isRejectedAndStaysDraft() {
+        String transactionId = createTransaction();
+
+        client.post()
+                .uri("/api/v1/transactions/{id}/post", transactionId)
+                .exchange()
+                .expectStatus()
+                .isEqualTo(422)
+                .expectBody()
+                .jsonPath("$.status")
+                .isEqualTo("ERROR")
+                .jsonPath("$.error.errorCode")
+                .isEqualTo("TXN_004");
+
+        client.get()
+                .uri("/api/v1/transactions/{id}", transactionId)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.data.status")
+                .isEqualTo("DRAFT");
+    }
+
+    
+    @Test
     public void testFullFlow_createPostAndRetrieve() {
         String checking = createAccount("CHK001", "CHECKING");
         String savings = createAccount("SAV001", "SAVINGS");
