@@ -340,6 +340,29 @@ public class LedgerFlowIntegrationTests {
                 .isEqualTo("status");
     }
 
+    @Test
+    public void testAddPosting_toArchivedAccount_isRejected() {
+        String checking = createAccount("CHK001", "CHECKING");
+        String transactionId = createTransaction();
+
+        client.put()
+                .uri("/api/v1/accounts/{id}/archive", checking)
+                .exchange()
+                .expectStatus()
+                .isOk();
+
+        client.post()
+                .uri("/api/v1/transactions/{id}/postings", transactionId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("accountId", checking, "amount", new BigDecimal("10.00"), "direction", "DEBIT"))
+                .exchange()
+                .expectStatus()
+                .isEqualTo(409)
+                .expectBody()
+                .jsonPath("$.error.errorCode")
+                .isEqualTo("ACC_002");
+    }
+
     private String createBalancedTransaction(String debitAccountId, String creditAccountId) {
         String transactionId = createTransaction();
         addPosting(transactionId, debitAccountId, "100.00", "DEBIT");
