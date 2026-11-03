@@ -11,9 +11,11 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @ControllerAdvice
@@ -40,6 +42,49 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(response, errorCode.getHttpStatus());
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ResponseWrapper<?>> handleUnreadableBody(HttpMessageNotReadableException ex) {
+        log.warn("Unreadable request body: {}", ex.getMessage());
+
+        ErrorDetails errorDetails = ErrorDetails.builder()
+                .errorCode(ErrorCode.MALFORMED_REQUEST.getCode())
+                .message(ErrorCode.MALFORMED_REQUEST.getMessage())
+                .details("Request body is missing, is not valid JSON, or contains an invalid value")
+                .build();
+
+        ResponseWrapper<?> response = ResponseWrapper.builder()
+                .status("ERROR")
+                .code(ErrorCode.MALFORMED_REQUEST.getHttpStatus().value())
+                .timestamp(Instant.now())
+                .requestId(REQUEST_ID)
+                .error(errorDetails)
+                .build();
+
+        return new ResponseEntity<>(response, ErrorCode.MALFORMED_REQUEST.getHttpStatus());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ResponseWrapper<?>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        log.warn("Invalid value for parameter '{}': {}", ex.getName(), ex.getMessage());
+
+        ErrorDetails errorDetails = ErrorDetails.builder()
+                .errorCode(ErrorCode.INVALID_PARAMETER.getCode())
+                .message(ErrorCode.INVALID_PARAMETER.getMessage())
+                .details(String.format("Parameter '%s' has an invalid value", ex.getName()))
+                .field(ex.getName())
+                .build();
+
+        ResponseWrapper<?> response = ResponseWrapper.builder()
+                .status("ERROR")
+                .code(ErrorCode.INVALID_PARAMETER.getHttpStatus().value())
+                .timestamp(Instant.now())
+                .requestId(REQUEST_ID)
+                .error(errorDetails)
+                .build();
+
+        return new ResponseEntity<>(response, ErrorCode.INVALID_PARAMETER.getHttpStatus());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -75,7 +120,6 @@ public class GlobalExceptionHandler {
         ErrorDetails errorDetails = ErrorDetails.builder()
                 .errorCode("INTERNAL_ERROR")
                 .message("An unexpected error occurred")
-                .details(ex.getMessage())
                 .build();
 
         ResponseWrapper<?> response = ResponseWrapper.builder()

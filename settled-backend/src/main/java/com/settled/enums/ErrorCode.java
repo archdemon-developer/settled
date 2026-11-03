@@ -22,7 +22,9 @@ public enum ErrorCode {
 
     IDEMPOTENCY_KEY_MISMATCH("IDEM_001", "Idempotency key already used for different transaction", HttpStatus.CONFLICT),
 
-    VALIDATION_ERROR("VAL_001", "Validation failed", HttpStatus.BAD_REQUEST);
+    VALIDATION_ERROR("VAL_001", "Validation failed", HttpStatus.BAD_REQUEST),
+    MALFORMED_REQUEST("VAL_002", "Request body is missing or malformed", HttpStatus.BAD_REQUEST),
+    INVALID_PARAMETER("VAL_003", "Request parameter has an invalid value", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String message;

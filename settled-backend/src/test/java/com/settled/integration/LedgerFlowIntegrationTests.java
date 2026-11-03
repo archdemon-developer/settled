@@ -90,7 +90,6 @@ public class LedgerFlowIntegrationTests {
                 .isEqualTo("DRAFT");
     }
 
-    
     @Test
     public void testFullFlow_createPostAndRetrieve() {
         String checking = createAccount("CHK001", "CHECKING");
@@ -283,6 +282,62 @@ public class LedgerFlowIntegrationTests {
                 .expectBody()
                 .jsonPath("$.data.postings[0].amount")
                 .isEqualTo("100.50");
+    }
+
+    @Test
+    public void testCreateAccount_invalidEnumValue_returnsMalformedRequest() {
+        client.post()
+                .uri("/api/v1/accounts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("code", "ACC001", "name", "Main Checking", "type", "FOO"))
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody()
+                .jsonPath("$.error.errorCode")
+                .isEqualTo("VAL_002");
+    }
+
+    @Test
+    public void testCreateAccount_brokenJson_returnsMalformedRequest() {
+        client.post()
+                .uri("/api/v1/accounts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"code\":")
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody()
+                .jsonPath("$.error.errorCode")
+                .isEqualTo("VAL_002");
+    }
+
+    @Test
+    public void testGetAccount_nonUuidId_returnsInvalidParameter() {
+        client.get()
+                .uri("/api/v1/accounts/{id}", "not-a-uuid")
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody()
+                .jsonPath("$.error.errorCode")
+                .isEqualTo("VAL_003")
+                .jsonPath("$.error.field")
+                .isEqualTo("id");
+    }
+
+    @Test
+    public void testListTransactions_invalidStatus_returnsInvalidParameter() {
+        client.get()
+                .uri("/api/v1/transactions?status=BOGUS")
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody()
+                .jsonPath("$.error.errorCode")
+                .isEqualTo("VAL_003")
+                .jsonPath("$.error.field")
+                .isEqualTo("status");
     }
 
     private String createBalancedTransaction(String debitAccountId, String creditAccountId) {
