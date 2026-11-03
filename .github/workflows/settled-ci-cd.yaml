@@ -122,10 +122,10 @@ jobs:
       - name: Set up Node.js 26
         uses: actions/setup-node@v6
         with:
-          node-version: '26'
-          cache: 'npm'
+          node-version: "26"
+          cache: "npm"
           cache-dependency-path: settled-ui/package-lock.json
-          
+
       - name: Install dependencies
         run: cd settled-ui && npm ci
 
@@ -147,41 +147,41 @@ jobs:
           retention-days: 30
 
 frontend-build:
-    runs-on: ubuntu-latest
-    name: Frontend Build
-    needs: frontend-setup
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
+  runs-on: ubuntu-latest
+  name: Frontend Build
+  needs: frontend-setup
 
-      - name: Set up Node.js 26
-        uses: actions/setup-node@v6
-        with:
-          node-version: '26'
-          cache: 'npm'
-          cache-dependency-path: settled-ui/package-lock.json
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v7
 
-      - name: Install dependencies
-        run: cd settled-ui && npm ci
+    - name: Set up Node.js 26
+      uses: actions/setup-node@v6
+      with:
+        node-version: "26"
+        cache: "npm"
+        cache-dependency-path: settled-ui/package-lock.json
 
-      - name: Build frontend
-        run: cd settled-ui && npm run build
+    - name: Install dependencies
+      run: cd settled-ui && npm ci
 
-      - name: Upload frontend build
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-dist
-          path: settled-ui/dist
-          retention-days: 7
+    - name: Build frontend
+      run: cd settled-ui && npm run build
 
-  frontend-deploy:
-    runs-on: ubuntu-latest
-    name: Frontend Deploy
-    needs: frontend-build
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
-    environment: production
+    - name: Upload frontend build
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-dist
+        path: settled-ui/dist
+        retention-days: 7
 
-    steps:
-      - name: Deploy frontend
-        run: echo "📡 Frontend deploy placeholder - Cloud Storage + CDN coming in P2"
+frontend-deploy:
+  runs-on: ubuntu-latest
+  name: Frontend Deploy
+  needs: frontend-build
+  if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
+  environment: production
+
+  steps:
+    - name: Deploy frontend
+      run: echo "📡 Frontend deploy placeholder - Cloud Storage + CDN coming in P2"
