@@ -146,42 +146,42 @@ jobs:
           path: settled-ui/coverage
           retention-days: 30
 
-frontend-build:
-  runs-on: ubuntu-latest
-  name: Frontend Build
-  needs: frontend-setup
+  frontend-build:
+    runs-on: ubuntu-latest
+    name: Frontend Build
+    needs: frontend-setup
 
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v7
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
 
-    - name: Set up Node.js 26
-      uses: actions/setup-node@v6
-      with:
-        node-version: "26"
-        cache: "npm"
-        cache-dependency-path: settled-ui/package-lock.json
+      - name: Set up Node.js 26
+        uses: actions/setup-node@v6
+        with:
+          node-version: "26"
+          cache: "npm"
+          cache-dependency-path: settled-ui/package-lock.json
 
-    - name: Install dependencies
-      run: cd settled-ui && npm ci
+      - name: Install dependencies
+        run: cd settled-ui && npm ci
 
-    - name: Build frontend
-      run: cd settled-ui && npm run build
+      - name: Build frontend
+        run: cd settled-ui && npm run build
 
-    - name: Upload frontend build
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-dist
-        path: settled-ui/dist
-        retention-days: 7
+      - name: Upload frontend build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: settled-ui/dist
+          retention-days: 7
 
-frontend-deploy:
-  runs-on: ubuntu-latest
-  name: Frontend Deploy
-  needs: frontend-build
-  if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
-  environment: production
+  frontend-deploy:
+    runs-on: ubuntu-latest
+    name: Frontend Deploy
+    needs: frontend-build
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
+    environment: production
 
-  steps:
-    - name: Deploy frontend
-      run: echo "📡 Frontend deploy placeholder - Cloud Storage + CDN coming in P2"
+    steps:
+      - name: Deploy frontend
+        run: echo "📡 Frontend deploy placeholder - Cloud Storage + CDN coming in P2"
