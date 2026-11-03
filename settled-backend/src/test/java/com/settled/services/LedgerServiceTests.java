@@ -9,6 +9,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.settled.enums.AccountStatus;
+import com.settled.enums.ErrorCode;
 import com.settled.enums.PostingDirection;
 import com.settled.enums.TransactionStatus;
 import com.settled.exceptions.InvalidPostingException;
@@ -97,6 +99,42 @@ public class LedgerServiceTests {
         verify(postingRepository, times(1)).findByTransactionId(txnId);
     }
 
+    @Test
+void testAddPosting_AccountArchived() {
+    UUID txnId = UUID.randomUUID();
+    UUID accountId = UUID.randomUUID();
+
+    Transaction transaction = Transaction.builder()
+            .id(txnId)
+            .reference("TXN001")
+            .status(TransactionStatus.DRAFT)
+            .postedAt(Instant.now())
+            .createdAt(Instant.now())
+            .build();
+
+    Account account = Account.builder()
+            .id(accountId)
+            .code("ACC001")
+            .status(AccountStatus.ARCHIVED)
+            .build();
+
+    CreatePostingRequest request = CreatePostingRequest.builder()
+            .accountId(accountId)
+            .amount(new BigDecimal("100.00"))
+            .direction(PostingDirection.DEBIT)
+            .build();
+
+    when(transactionRepository.findById(txnId)).thenReturn(Optional.of(transaction));
+    when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
+
+    InvalidPostingException ex =
+            assertThrows(InvalidPostingException.class, () -> ledgerService.addPosting(txnId, request));
+
+    assertEquals(ErrorCode.ACCOUNT_ARCHIVED, ex.getErrorCode());
+
+    verify(accountRepository, times(1)).findById(accountId);
+    verify(postingRepository, never()).save(any());
+}
     @Test
     void testAddPosting_TransactionNotFound() {
         UUID txnId = UUID.randomUUID();
