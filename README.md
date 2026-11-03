@@ -85,7 +85,7 @@ A transaction is built up in steps, the way accounting systems do it, and is loc
 
 1. **Create** a transaction. It starts in `DRAFT`.
 2. **Add postings** one at a time. Each posting is a `DEBIT` or `CREDIT` of an amount against an account.
-3. **Post** the transaction. This succeeds only if it is in `DRAFT` and total debits equal total credits. A posted transaction can no longer take postings.
+3. **Post** the transaction. This succeeds only if it is in `DRAFT`, has at least one posting, and total debits equal total credits. A posted transaction can no longer take postings.
 
 Nothing is deleted. Statuses are `DRAFT`, `POSTED` and `REVERSED`.
 
@@ -196,7 +196,7 @@ npm run build         # type-check + production build
 - Reversals of posted transactions
 - Account balances and per-account ledger views
 - Redis. The container is provisioned in Compose, but the backend does not use it yet.
-- Cloud deployment. The target (GCP or AWS) is undecided.
+- Cloud deployment. GCP is the target.
 
 ---
 

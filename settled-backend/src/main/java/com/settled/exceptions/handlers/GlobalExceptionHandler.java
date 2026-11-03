@@ -20,7 +20,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    private static final String REQUEST_ID = UUID.randomUUID().toString();
 
     @ExceptionHandler(SettledException.class)
     public ResponseEntity<ResponseWrapper<?>> handleSettledException(SettledException ex) {
@@ -37,7 +36,7 @@ public class GlobalExceptionHandler {
                 .status("ERROR")
                 .code(errorCode.getHttpStatus().value())
                 .timestamp(Instant.now())
-                .requestId(REQUEST_ID)
+                .requestId(UUID.randomUUID().toString())
                 .error(errorDetails)
                 .build();
 
@@ -58,7 +57,7 @@ public class GlobalExceptionHandler {
                 .status("ERROR")
                 .code(ErrorCode.MALFORMED_REQUEST.getHttpStatus().value())
                 .timestamp(Instant.now())
-                .requestId(REQUEST_ID)
+                .requestId(UUID.randomUUID().toString())
                 .error(errorDetails)
                 .build();
 
@@ -80,7 +79,7 @@ public class GlobalExceptionHandler {
                 .status("ERROR")
                 .code(ErrorCode.INVALID_PARAMETER.getHttpStatus().value())
                 .timestamp(Instant.now())
-                .requestId(REQUEST_ID)
+                .requestId(UUID.randomUUID().toString())
                 .error(errorDetails)
                 .build();
 
@@ -106,7 +105,7 @@ public class GlobalExceptionHandler {
                 .status("ERROR")
                 .code(HttpStatus.BAD_REQUEST.value())
                 .timestamp(Instant.now())
-                .requestId(REQUEST_ID)
+                .requestId(UUID.randomUUID().toString())
                 .error(errorDetails)
                 .build();
 
@@ -126,7 +125,7 @@ public class GlobalExceptionHandler {
                 .status("ERROR")
                 .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .timestamp(Instant.now())
-                .requestId(REQUEST_ID)
+                .requestId(UUID.randomUUID().toString())
                 .error(errorDetails)
                 .build();
 

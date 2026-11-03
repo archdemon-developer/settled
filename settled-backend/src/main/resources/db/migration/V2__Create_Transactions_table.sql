@@ -3,7 +3,7 @@ CREATE TABLE transactions (
     reference VARCHAR(100) NOT NULL UNIQUE,
     description TEXT,
     posted_at TIMESTAMPTZ NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'POSTED',
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

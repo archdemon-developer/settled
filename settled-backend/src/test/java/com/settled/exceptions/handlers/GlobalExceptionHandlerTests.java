@@ -1,6 +1,7 @@
 package com.settled.exceptions.handlers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
@@ -163,5 +164,15 @@ public class GlobalExceptionHandlerTests {
                 response.getBody().getError().getDetails());
         assertNotNull(response.getBody().getRequestId());
         assertNotNull(response.getBody().getTimestamp());
+    }
+
+    @Test
+    void shouldGenerateDistinctRequestIdPerErrorResponse() {
+        Exception ex = new RuntimeException("boom");
+
+        ResponseEntity<ResponseWrapper<?>> first = globalExceptionHandler.handleGenericException(ex);
+        ResponseEntity<ResponseWrapper<?>> second = globalExceptionHandler.handleGenericException(ex);
+
+        assertNotEquals(first.getBody().getRequestId(), second.getBody().getRequestId());
     }
 }
