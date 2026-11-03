@@ -1,5 +1,6 @@
 package com.settled.services;
 
+import com.settled.enums.AccountStatus;
 import com.settled.enums.ErrorCode;
 import com.settled.enums.TransactionStatus;
 import com.settled.exceptions.InvalidPostingException;
@@ -48,6 +49,12 @@ public class LedgerService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         ErrorCode.ACCOUNT_NOT_FOUND,
                         String.format("Account with ID '%s' not found", request.getAccountId())));
+
+        if (account.getStatus() == AccountStatus.ARCHIVED) {
+            throw new InvalidPostingException(
+                    ErrorCode.ACCOUNT_ARCHIVED,
+                    String.format("Account '%s' is archived and cannot receive postings", account.getCode()));
+        }
 
         Posting posting = Posting.builder()
                 .transaction(transaction)

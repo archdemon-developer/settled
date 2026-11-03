@@ -66,6 +66,31 @@ public class LedgerFlowIntegrationTests {
     }
 
     @Test
+    public void testPost_noPostings_isRejectedAndStaysDraft() {
+        String transactionId = createTransaction();
+
+        client.post()
+                .uri("/api/v1/transactions/{id}/post", transactionId)
+                .exchange()
+                .expectStatus()
+                .isEqualTo(422)
+                .expectBody()
+                .jsonPath("$.status")
+                .isEqualTo("ERROR")
+                .jsonPath("$.error.errorCode")
+                .isEqualTo("TXN_004");
+
+        client.get()
+                .uri("/api/v1/transactions/{id}", transactionId)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.data.status")
+                .isEqualTo("DRAFT");
+    }
+
+    @Test
     public void testFullFlow_createPostAndRetrieve() {
         String checking = createAccount("CHK001", "CHECKING");
         String savings = createAccount("SAV001", "SAVINGS");
@@ -257,6 +282,85 @@ public class LedgerFlowIntegrationTests {
                 .expectBody()
                 .jsonPath("$.data.postings[0].amount")
                 .isEqualTo("100.50");
+    }
+
+    @Test
+    public void testCreateAccount_invalidEnumValue_returnsMalformedRequest() {
+        client.post()
+                .uri("/api/v1/accounts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("code", "ACC001", "name", "Main Checking", "type", "FOO"))
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody()
+                .jsonPath("$.error.errorCode")
+                .isEqualTo("VAL_002");
+    }
+
+    @Test
+    public void testCreateAccount_brokenJson_returnsMalformedRequest() {
+        client.post()
+                .uri("/api/v1/accounts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"code\":")
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody()
+                .jsonPath("$.error.errorCode")
+                .isEqualTo("VAL_002");
+    }
+
+    @Test
+    public void testGetAccount_nonUuidId_returnsInvalidParameter() {
+        client.get()
+                .uri("/api/v1/accounts/{id}", "not-a-uuid")
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody()
+                .jsonPath("$.error.errorCode")
+                .isEqualTo("VAL_003")
+                .jsonPath("$.error.field")
+                .isEqualTo("id");
+    }
+
+    @Test
+    public void testListTransactions_invalidStatus_returnsInvalidParameter() {
+        client.get()
+                .uri("/api/v1/transactions?status=BOGUS")
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody()
+                .jsonPath("$.error.errorCode")
+                .isEqualTo("VAL_003")
+                .jsonPath("$.error.field")
+                .isEqualTo("status");
+    }
+
+    @Test
+    public void testAddPosting_toArchivedAccount_isRejected() {
+        String checking = createAccount("CHK001", "CHECKING");
+        String transactionId = createTransaction();
+
+        client.put()
+                .uri("/api/v1/accounts/{id}/archive", checking)
+                .exchange()
+                .expectStatus()
+                .isOk();
+
+        client.post()
+                .uri("/api/v1/transactions/{id}/postings", transactionId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("accountId", checking, "amount", new BigDecimal("10.00"), "direction", "DEBIT"))
+                .exchange()
+                .expectStatus()
+                .isEqualTo(409)
+                .expectBody()
+                .jsonPath("$.error.errorCode")
+                .isEqualTo("ACC_002");
     }
 
     private String createBalancedTransaction(String debitAccountId, String creditAccountId) {

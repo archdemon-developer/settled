@@ -1,7 +1,9 @@
 package com.settled.exceptions.handlers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -16,9 +18,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @ExtendWith(MockitoExtension.class)
 public class GlobalExceptionHandlerTests {
@@ -87,7 +91,7 @@ public class GlobalExceptionHandlerTests {
         assertEquals("INTERNAL_ERROR", response.getBody().getError().getErrorCode());
         assertEquals(
                 "An unexpected error occurred", response.getBody().getError().getMessage());
-        assertEquals("Database connection failed", response.getBody().getError().getDetails());
+        assertNull(response.getBody().getError().getDetails());
         assertNotNull(response.getBody().getRequestId());
         assertNotNull(response.getBody().getTimestamp());
     }
@@ -120,5 +124,55 @@ public class GlobalExceptionHandlerTests {
                 response.getBody().getError().getViolations().get(0).getMessage());
         assertNotNull(response.getBody().getRequestId());
         assertNotNull(response.getBody().getTimestamp());
+    }
+
+    @Test
+    void shouldHandleHttpMessageNotReadableException() {
+        HttpMessageNotReadableException ex = mock(HttpMessageNotReadableException.class);
+
+        ResponseEntity<ResponseWrapper<?>> response = globalExceptionHandler.handleUnreadableBody(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("ERROR", response.getBody().getStatus());
+        assertEquals(400, response.getBody().getCode());
+        assertEquals(
+                ErrorCode.MALFORMED_REQUEST.getCode(),
+                response.getBody().getError().getErrorCode());
+        assertNotNull(response.getBody().getError().getDetails());
+        assertNotNull(response.getBody().getRequestId());
+        assertNotNull(response.getBody().getTimestamp());
+    }
+
+    @Test
+    void shouldHandleMethodArgumentTypeMismatchException() {
+        MethodArgumentTypeMismatchException ex = mock(MethodArgumentTypeMismatchException.class);
+        when(ex.getName()).thenReturn("id");
+
+        ResponseEntity<ResponseWrapper<?>> response = globalExceptionHandler.handleTypeMismatch(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("ERROR", response.getBody().getStatus());
+        assertEquals(400, response.getBody().getCode());
+        assertEquals(
+                ErrorCode.INVALID_PARAMETER.getCode(),
+                response.getBody().getError().getErrorCode());
+        assertEquals("id", response.getBody().getError().getField());
+        assertEquals(
+                "Parameter 'id' has an invalid value",
+                response.getBody().getError().getDetails());
+        assertNotNull(response.getBody().getRequestId());
+        assertNotNull(response.getBody().getTimestamp());
+    }
+
+    @Test
+    void shouldGenerateDistinctRequestIdPerErrorResponse() {
+        Exception ex = new RuntimeException("boom");
+
+        ResponseEntity<ResponseWrapper<?>> first = globalExceptionHandler.handleGenericException(ex);
+        ResponseEntity<ResponseWrapper<?>> second = globalExceptionHandler.handleGenericException(ex);
+
+        assertNotEquals(first.getBody().getRequestId(), second.getBody().getRequestId());
     }
 }
