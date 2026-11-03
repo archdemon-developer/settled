@@ -34,7 +34,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (body.status === 'ERROR' || !response.ok) {
     throw new ApiError(
       response.status,
-      body.error ?? { errorCode: 'UNKNOWN_ERROR', message: response.statusText },
+      typeof body.error === 'object' && body.error !== null
+        ? body.error
+        : { errorCode: 'UNKNOWN_ERROR', message: response.statusText },
     );
   }
 

@@ -89,4 +89,40 @@ describe('api client', () => {
       error: { errorCode: 'INVALID_RESPONSE' },
     });
   });
+
+  it('falls back to the status text when an error body is not in the standard envelope', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ status: 404, error: 'Not Found', path: '/api/v1/nope' }), {
+          status: 404,
+          statusText: 'Not Found',
+        }),
+      ),
+    );
+
+    const call = api.get('/nope');
+
+    await expect(call).rejects.toMatchObject({
+      status: 404,
+      error: { errorCode: 'UNKNOWN_ERROR', message: 'Not Found' },
+    });
+  });
+
+  it('sends the request body as JSON on put', async () => {
+    const fetchMock = respondWith(200, {
+      status: 'SUCCESS',
+      code: 200,
+      timestamp: '2026-11-02T10:00:00.000Z',
+      requestId: 'req-5',
+      data: { id: '1' },
+    });
+
+    await api.put('/accounts/1', { name: 'Renamed' });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/accounts/1',
+      expect.objectContaining({ method: 'PUT', body: JSON.stringify({ name: 'Renamed' }) }),
+    );
+  });
 });
