@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -58,16 +57,7 @@ public class AccountController {
                     @RequestBody
                     CreateAccountRequest request) {
         AccountResponse data = accountService.create(request);
-
-        ResponseWrapper<AccountResponse> response = ResponseWrapper.<AccountResponse>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.CREATED.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.CREATED.value(), data), HttpStatus.CREATED);
     }
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -80,16 +70,7 @@ public class AccountController {
     public ResponseEntity<ResponseWrapper<AccountResponse>> getAccountById(
             @Parameter(description = "Account UUID", required = true) @PathVariable UUID id) {
         AccountResponse data = accountService.getById(id);
-
-        ResponseWrapper<AccountResponse> response = ResponseWrapper.<AccountResponse>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.OK.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
     }
 
     @GetMapping(value = "/code/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -102,16 +83,7 @@ public class AccountController {
     public ResponseEntity<ResponseWrapper<AccountResponse>> getAccountByCode(
             @Parameter(description = "Account code", required = true) @PathVariable String code) {
         AccountResponse data = accountService.getByCode(code);
-
-        ResponseWrapper<AccountResponse> response = ResponseWrapper.<AccountResponse>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.OK.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -125,16 +97,7 @@ public class AccountController {
                     @RequestParam(required = false)
                     AccountStatus status) {
         List<AccountResponse> data = accountService.listByStatus(status);
-
-        ResponseWrapper<List<AccountResponse>> response = ResponseWrapper.<List<AccountResponse>>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.OK.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
     }
 
     @PutMapping(value = "/{id}/archive", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -147,15 +110,6 @@ public class AccountController {
     public ResponseEntity<ResponseWrapper<AccountResponse>> archiveAccount(
             @Parameter(description = "Account UUID", required = true) @PathVariable UUID id) {
         AccountResponse data = accountService.archive(id);
-
-        ResponseWrapper<AccountResponse> response = ResponseWrapper.<AccountResponse>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.OK.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
     }
 }
