@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -62,16 +61,7 @@ public class TransactionController {
                     @RequestBody
                     CreateTransactionRequest request) {
         TransactionResponse data = transactionService.create(request);
-
-        ResponseWrapper<TransactionResponse> response = ResponseWrapper.<TransactionResponse>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.CREATED.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.CREATED.value(), data), HttpStatus.CREATED);
     }
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -88,16 +78,7 @@ public class TransactionController {
     public ResponseEntity<ResponseWrapper<TransactionResponse>> getTransaction(
             @Parameter(description = "Transaction UUID", required = true) @PathVariable UUID id) {
         TransactionResponse data = transactionService.getById(id);
-
-        ResponseWrapper<TransactionResponse> response = ResponseWrapper.<TransactionResponse>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.OK.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -117,16 +98,7 @@ public class TransactionController {
                     @RequestParam(required = false)
                     TransactionStatus status) {
         List<TransactionResponse> data = transactionService.listByStatus(status);
-
-        ResponseWrapper<List<TransactionResponse>> response = ResponseWrapper.<List<TransactionResponse>>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.OK.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
     }
 
     @PostMapping(value = "/{id}/post", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -144,16 +116,7 @@ public class TransactionController {
     public ResponseEntity<ResponseWrapper<TransactionResponse>> markAsPosted(
             @Parameter(description = "Transaction UUID", required = true) @PathVariable UUID id) {
         TransactionResponse data = transactionService.markAsPosted(id);
-
-        ResponseWrapper<TransactionResponse> response = ResponseWrapper.<TransactionResponse>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.OK.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
     }
 
     @PostMapping(
@@ -185,15 +148,6 @@ public class TransactionController {
                     @RequestBody
                     CreatePostingRequest request) {
         TransactionDetailResponse data = ledgerService.addPosting(id, request);
-
-        ResponseWrapper<TransactionDetailResponse> response = ResponseWrapper.<TransactionDetailResponse>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.CREATED.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.CREATED.value(), data), HttpStatus.CREATED);
     }
 }

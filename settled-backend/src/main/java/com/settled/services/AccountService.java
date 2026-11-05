@@ -46,11 +46,7 @@ public class AccountService {
     }
 
     public AccountResponse getById(UUID id) {
-        Account account = accountRepository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCode.ACCOUNT_NOT_FOUND, String.format("Account with ID '%s' not found", id)));
-        return MapperUtil.toAccountResponse(account);
+        return MapperUtil.toAccountResponse(findAccountOrThrow(id));
     }
 
     public AccountResponse getByCode(String code) {
@@ -69,12 +65,16 @@ public class AccountService {
 
     @Transactional
     public AccountResponse archive(UUID id) {
-        Account account = accountRepository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCode.ACCOUNT_NOT_FOUND, String.format("Account with ID '%s' not found", id)));
+        Account account = findAccountOrThrow(id);
         account.setStatus(AccountStatus.ARCHIVED);
         Account saved = accountRepository.save(account);
         return MapperUtil.toAccountResponse(saved);
+    }
+
+    private Account findAccountOrThrow(UUID id) {
+        return accountRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        ErrorCode.ACCOUNT_NOT_FOUND, String.format("Account with ID '%s' not found", id)));
     }
 }
