@@ -406,6 +406,25 @@ public class LedgerFlowIntegrationTests {
         }
     }
 
+    @Test
+    public void testAddPosting_tooManyDecimalPlaces_failsValidation() {
+        String checking = createAccount("CHK001", "CHECKING");
+        String transactionId = createTransaction();
+
+        client.post()
+                .uri("/api/v1/transactions/{id}/postings", transactionId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("accountId", checking, "amount", "100.12345", "direction", "DEBIT"))
+                .exchange()
+                .expectStatus()
+                .isBadRequest()
+                .expectBody()
+                .jsonPath("$.error.errorCode")
+                .isEqualTo("VAL_001")
+                .jsonPath("$.error.violations[0].field")
+                .isEqualTo("amount");
+    }
+
     private String createBalancedTransaction(String debitAccountId, String creditAccountId) {
         String transactionId = createTransaction();
         addPosting(transactionId, debitAccountId, "100.00", "DEBIT");
