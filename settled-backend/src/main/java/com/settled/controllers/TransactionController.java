@@ -42,11 +42,7 @@ public class TransactionController {
             summary = "Create transaction",
             description =
                     "Creates a new transaction in DRAFT state. The transaction is created with a unique reference and waits for postings to be added before being posted.")
-    @ApiResponse(
-            responseCode = "201",
-            description = "Transaction created successfully",
-            content =
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseWrapper.class)))
+    @ApiResponse(responseCode = "201", description = "Transaction created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request - missing or invalid fields")
     @ApiResponse(responseCode = "409", description = "Conflict - duplicate transaction reference")
     public ResponseEntity<ResponseWrapper<TransactionResponse>> createTransaction(
@@ -71,9 +67,7 @@ public class TransactionController {
                     "Retrieves a transaction by its UUID. Returns the transaction details along with any postings that have been added.")
     @ApiResponse(
             responseCode = "200",
-            description = "Transaction found and returned",
-            content =
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseWrapper.class)))
+            description = "Transaction found and returned")
     @ApiResponse(responseCode = "404", description = "Transaction not found")
     public ResponseEntity<ResponseWrapper<TransactionResponse>> getTransaction(
             @Parameter(description = "Transaction UUID", required = true) @PathVariable UUID id) {
@@ -88,9 +82,7 @@ public class TransactionController {
                     "Lists all transactions, optionally filtered by status (DRAFT or POSTED). If no status is provided, all transactions are returned.")
     @ApiResponse(
             responseCode = "200",
-            description = "List of transactions",
-            content =
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseWrapper.class)))
+            description = "List of transactions")
     public ResponseEntity<ResponseWrapper<List<TransactionResponse>>> listTransactions(
             @Parameter(
                             description = "Filter by transaction status (DRAFT, POSTED). Optional.",
@@ -108,12 +100,13 @@ public class TransactionController {
                     "Marks a DRAFT transaction as POSTED. The transaction must have at least 2 postings (1 debit + 1 credit) that balance (total debits = total credits). Once posted, the transaction is immutable.")
     @ApiResponse(
             responseCode = "200",
-            description = "Transaction marked as posted",
-            content =
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseWrapper.class)))
+            description = "Transaction marked as posted")
     @ApiResponse(responseCode = "404", description = "Transaction not found")
-    @ApiResponse(responseCode = "409", description = "Transaction is not in DRAFT state or postings do not balance")
-    public ResponseEntity<ResponseWrapper<TransactionResponse>> markAsPosted(
+    @ApiResponse(responseCode = "409", description = "Transaction is not in DRAFT state")
+@ApiResponse(
+        responseCode = "422",
+        description = "Transaction has no postings, or its debits do not equal its credits")
+        public ResponseEntity<ResponseWrapper<TransactionResponse>> markAsPosted(
             @Parameter(description = "Transaction UUID", required = true) @PathVariable UUID id) {
         TransactionResponse data = transactionService.markAsPosted(id);
         return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
@@ -129,9 +122,7 @@ public class TransactionController {
                     "Adds a posting (debit or credit) to a DRAFT transaction. A posting represents a single ledger entry to an account. Multiple postings can be added to a transaction before it is posted.")
     @ApiResponse(
             responseCode = "201",
-            description = "Posting added successfully. Returns the full transaction with all postings.",
-            content =
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseWrapper.class)))
+            description = "Posting added successfully. Returns the full transaction with all postings.")
     @ApiResponse(responseCode = "400", description = "Invalid posting request - invalid amount or missing fields")
     @ApiResponse(responseCode = "404", description = "Transaction or account not found")
     @ApiResponse(responseCode = "409", description = "Transaction is not in DRAFT state")
