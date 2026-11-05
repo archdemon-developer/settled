@@ -6,8 +6,16 @@ import com.settled.repositories.AccountRepository;
 import com.settled.repositories.PostingRepository;
 import com.settled.repositories.TransactionRepository;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -361,6 +369,41 @@ public class LedgerFlowIntegrationTests {
                 .expectBody()
                 .jsonPath("$.error.errorCode")
                 .isEqualTo("ACC_002");
+    }
+
+    @Test
+    public void testPost_concurrentRequests_onlyOneSucceeds() throws Exception {
+        String checking = createAccount("CHK001", "CHECKING");
+        String savings = createAccount("SAV001", "SAVINGS");
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        try {
+            for (int round = 0; round < 20; round++) {
+                postingRepository.deleteAllInBatch();
+                transactionRepository.deleteAllInBatch();
+                String transactionId = createBalancedTransaction(checking, savings);
+
+                CyclicBarrier barrier = new CyclicBarrier(2);
+                Callable<Integer> postRequest = () -> {
+                    barrier.await();
+                    return client.post()
+                            .uri("/api/v1/transactions/{id}/post", transactionId)
+                            .exchange()
+                            .expectBody(String.class)
+                            .returnResult()
+                            .getStatus()
+                            .value();
+                };
+
+                Future<Integer> first = executor.submit(postRequest);
+                Future<Integer> second = executor.submit(postRequest);
+
+                Assertions.assertThat(List.of(first.get(10, TimeUnit.SECONDS), second.get(10, TimeUnit.SECONDS)))
+                        .containsExactlyInAnyOrder(200, 409);
+            }
+        } finally {
+            executor.shutdown();
+        }
     }
 
     private String createBalancedTransaction(String debitAccountId, String creditAccountId) {

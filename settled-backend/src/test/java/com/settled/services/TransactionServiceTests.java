@@ -250,7 +250,7 @@ public class TransactionServiceTests {
                 .createdAt(Instant.now())
                 .build();
 
-        when(transactionRepository.findById(txnId)).thenReturn(Optional.of(transaction));
+        when(transactionRepository.findByIdForUpdate(txnId)).thenReturn(Optional.of(transaction));
         when(postingRepository.findByTransactionId(txnId)).thenReturn(List.of());
 
         InvalidPostingException ex =
@@ -294,7 +294,7 @@ public class TransactionServiceTests {
                 .createdAt(Instant.now())
                 .build();
 
-        when(transactionRepository.findById(txnId)).thenReturn(Optional.of(transaction));
+        when(transactionRepository.findByIdForUpdate(txnId)).thenReturn(Optional.of(transaction));
         when(postingRepository.findByTransactionId(txnId)).thenReturn(List.of(posting1, posting2));
 
         ArgumentCaptor<Transaction> captor = ArgumentCaptor.forClass(Transaction.class);
@@ -318,7 +318,7 @@ public class TransactionServiceTests {
         assertNotNull(response);
         assertEquals(TransactionStatus.POSTED, response.getStatus());
 
-        verify(transactionRepository, times(1)).findById(txnId);
+        verify(transactionRepository, times(1)).findByIdForUpdate(txnId);
         verify(postingRepository, times(1)).findByTransactionId(txnId);
         verify(transactionRepository, times(1)).save(any(Transaction.class));
     }
@@ -326,11 +326,11 @@ public class TransactionServiceTests {
     @Test
     public void testMarkAsPosted_TransactionNotFound() {
         UUID txnId = UUID.randomUUID();
-        when(transactionRepository.findById(txnId)).thenReturn(Optional.empty());
+        when(transactionRepository.findByIdForUpdate(txnId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> transactionService.markAsPosted(txnId));
 
-        verify(transactionRepository, times(1)).findById(txnId);
+        verify(transactionRepository, times(1)).findByIdForUpdate(txnId);
         verify(postingRepository, never()).findByTransactionId(any());
         verify(transactionRepository, never()).save(any());
     }
@@ -347,11 +347,11 @@ public class TransactionServiceTests {
                 .createdAt(Instant.now())
                 .build();
 
-        when(transactionRepository.findById(txnId)).thenReturn(Optional.of(transaction));
+        when(transactionRepository.findByIdForUpdate(txnId)).thenReturn(Optional.of(transaction));
 
         assertThrows(InvalidPostingException.class, () -> transactionService.markAsPosted(txnId));
 
-        verify(transactionRepository, times(1)).findById(txnId);
+        verify(transactionRepository, times(1)).findByIdForUpdate(txnId);
         verify(postingRepository, never()).findByTransactionId(any());
         verify(transactionRepository, never()).save(any());
     }
@@ -388,12 +388,12 @@ public class TransactionServiceTests {
                 .createdAt(Instant.now())
                 .build();
 
-        when(transactionRepository.findById(txnId)).thenReturn(Optional.of(transaction));
+        when(transactionRepository.findByIdForUpdate(txnId)).thenReturn(Optional.of(transaction));
         when(postingRepository.findByTransactionId(txnId)).thenReturn(List.of(posting1, posting2));
 
         assertThrows(InvalidPostingException.class, () -> transactionService.markAsPosted(txnId));
 
-        verify(transactionRepository, times(1)).findById(txnId);
+        verify(transactionRepository, times(1)).findByIdForUpdate(txnId);
         verify(postingRepository, times(1)).findByTransactionId(txnId);
         verify(transactionRepository, never()).save(any());
     }

@@ -77,7 +77,7 @@ public class TransactionService {
     @Transactional
     public TransactionResponse markAsPosted(UUID id) {
         Transaction transaction = transactionRepository
-                .findById(id)
+                .findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         ErrorCode.TRANSACTION_NOT_FOUND, String.format("Transaction with ID '%s' not found", id)));
 
