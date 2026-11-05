@@ -65,7 +65,7 @@ public class MapperUtil {
                 .id(transaction.getId())
                 .reference(transaction.getReference())
                 .description(transaction.getDescription())
-                .postedAt(transaction.getPostedAt() != null ? transaction.getPostedAt() : null)
+                .postedAt(transaction.getPostedAt())
                 .status(transaction.getStatus())
                 .createdAt(transaction.getCreatedAt())
                 .updatedAt(transaction.getUpdatedAt())

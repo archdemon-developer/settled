@@ -38,9 +38,7 @@ public class AccountController {
     @Operation(
             summary = "Create account",
             description = "Creates a new account with a unique code. Accounts are the foundation of the ledger.")
-    @ApiResponse(
-            responseCode = "201",
-            description = "Account created successfully")
+    @ApiResponse(responseCode = "201", description = "Account created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request")
     @ApiResponse(responseCode = "409", description = "Duplicate account code")
     public ResponseEntity<ResponseWrapper<AccountResponse>> createAccount(
@@ -60,9 +58,7 @@ public class AccountController {
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Get account by ID")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Account found")
+    @ApiResponse(responseCode = "200", description = "Account found")
     @ApiResponse(responseCode = "404", description = "Account not found")
     public ResponseEntity<ResponseWrapper<AccountResponse>> getAccountById(
             @Parameter(description = "Account UUID", required = true) @PathVariable UUID id) {
@@ -72,9 +68,7 @@ public class AccountController {
 
     @GetMapping(value = "/code/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Get account by code")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Account found")
+    @ApiResponse(responseCode = "200", description = "Account found")
     @ApiResponse(responseCode = "404", description = "Account not found")
     public ResponseEntity<ResponseWrapper<AccountResponse>> getAccountByCode(
             @Parameter(description = "Account code", required = true) @PathVariable String code) {
@@ -84,9 +78,7 @@ public class AccountController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "List accounts")
-    @ApiResponse(
-            responseCode = "200",
-            description = "List of accounts")
+    @ApiResponse(responseCode = "200", description = "List of accounts")
     public ResponseEntity<ResponseWrapper<List<AccountResponse>>> listAccountsByStatus(
             @Parameter(description = "Filter by account status", schema = @Schema(enumAsRef = true))
                     @RequestParam(required = false)
@@ -97,9 +89,7 @@ public class AccountController {
 
     @PutMapping(value = "/{id}/archive", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Archive account")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Account archived")
+    @ApiResponse(responseCode = "200", description = "Account archived")
     @ApiResponse(responseCode = "404", description = "Account not found")
     public ResponseEntity<ResponseWrapper<AccountResponse>> archiveAccount(
             @Parameter(description = "Account UUID", required = true) @PathVariable UUID id) {

@@ -10,7 +10,6 @@ import com.settled.models.responses.AccountResponse;
 import com.settled.repositories.AccountRepository;
 import com.settled.utils.MapperUtil;
 import jakarta.transaction.Transactional;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +37,6 @@ public class AccountService {
                 .name(request.getName())
                 .type(request.getType())
                 .status(AccountStatus.ACTIVE)
-                .createdAt(Instant.now())
                 .build();
 
         Account saved = accountRepository.save(account);
@@ -58,7 +56,7 @@ public class AccountService {
     }
 
     public List<AccountResponse> listByStatus(AccountStatus status) {
-        return ObjectUtils.isEmpty(status)
+        return status == null
                 ? MapperUtil.toAccountResponseList(accountRepository.findAll())
                 : MapperUtil.toAccountResponseList(accountRepository.findByStatus(status));
     }

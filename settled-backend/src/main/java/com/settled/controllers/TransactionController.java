@@ -65,9 +65,7 @@ public class TransactionController {
             summary = "Get transaction by ID",
             description =
                     "Retrieves a transaction by its UUID. Returns the transaction details along with any postings that have been added.")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Transaction found and returned")
+    @ApiResponse(responseCode = "200", description = "Transaction found and returned")
     @ApiResponse(responseCode = "404", description = "Transaction not found")
     public ResponseEntity<ResponseWrapper<TransactionResponse>> getTransaction(
             @Parameter(description = "Transaction UUID", required = true) @PathVariable UUID id) {
@@ -80,9 +78,7 @@ public class TransactionController {
             summary = "List transactions",
             description =
                     "Lists all transactions, optionally filtered by status (DRAFT or POSTED). If no status is provided, all transactions are returned.")
-    @ApiResponse(
-            responseCode = "200",
-            description = "List of transactions")
+    @ApiResponse(responseCode = "200", description = "List of transactions")
     public ResponseEntity<ResponseWrapper<List<TransactionResponse>>> listTransactions(
             @Parameter(
                             description = "Filter by transaction status (DRAFT, POSTED). Optional.",
@@ -98,15 +94,13 @@ public class TransactionController {
             summary = "Mark transaction as posted",
             description =
                     "Marks a DRAFT transaction as POSTED. The transaction must have at least 2 postings (1 debit + 1 credit) that balance (total debits = total credits). Once posted, the transaction is immutable.")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Transaction marked as posted")
+    @ApiResponse(responseCode = "200", description = "Transaction marked as posted")
     @ApiResponse(responseCode = "404", description = "Transaction not found")
     @ApiResponse(responseCode = "409", description = "Transaction is not in DRAFT state")
-@ApiResponse(
-        responseCode = "422",
-        description = "Transaction has no postings, or its debits do not equal its credits")
-        public ResponseEntity<ResponseWrapper<TransactionResponse>> markAsPosted(
+    @ApiResponse(
+            responseCode = "422",
+            description = "Transaction has no postings, or its debits do not equal its credits")
+    public ResponseEntity<ResponseWrapper<TransactionResponse>> markAsPosted(
             @Parameter(description = "Transaction UUID", required = true) @PathVariable UUID id) {
         TransactionResponse data = transactionService.markAsPosted(id);
         return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);

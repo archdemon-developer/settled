@@ -15,12 +15,10 @@ import com.settled.repositories.TransactionRepository;
 import com.settled.utils.MapperUtil;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -44,37 +42,13 @@ public class TransactionService {
                 .description(request.getDescription())
                 .postedAt(request.getPostedAt())
                 .status(TransactionStatus.DRAFT)
-                .createdAt(Instant.now())
                 .build();
 
         Transaction saved = transactionRepository.save(transaction);
         return MapperUtil.toTransactionResponse(saved);
     }
 
-    public TransactionResponse getById(UUID id) {
-        Transaction transaction = transactionRepository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCode.TRANSACTION_NOT_FOUND, String.format("Transaction with ID '%s' not found", id)));
-        return MapperUtil.toTransactionResponse(transaction);
-    }
-
-    public TransactionResponse getByReference(String reference) {
-        Transaction transaction = transactionRepository
-                .findByReference(reference)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        ErrorCode.TRANSACTION_NOT_FOUND,
-                        String.format("Transaction with reference '%s' not found", reference)));
-        return MapperUtil.toTransactionResponse(transaction);
-    }
-
-    public List<TransactionResponse> listByStatus(TransactionStatus status) {
-        return ObjectUtils.isEmpty(status)
-                ? MapperUtil.toTransactionResponseList(transactionRepository.findAll())
-                : MapperUtil.toTransactionResponseList(transactionRepository.findByStatus(status));
-    }
-
-    @Transactional
+        @Transactional
     public TransactionResponse markAsPosted(UUID id) {
         Transaction transaction = transactionRepository
                 .findByIdForUpdate(id)
@@ -96,15 +70,8 @@ public class TransactionService {
                     String.format("Transaction '%s' has no postings and cannot be posted", id));
         }
 
-        BigDecimal totalDebits = postings.stream()
-                .filter(posting -> posting.getDirection() == PostingDirection.DEBIT)
-                .map(posting -> posting.getAmount())
-                .reduce(BigDecimal.ZERO, (first, second) -> first.add(second));
-
-        BigDecimal totalCredits = postings.stream()
-                .filter(posting -> posting.getDirection() == PostingDirection.CREDIT)
-                .map(posting -> posting.getAmount())
-                .reduce(BigDecimal.ZERO, (first, second) -> first.add(second));
+        BigDecimal totalDebits = sumByDirection(postings, PostingDirection.DEBIT);
+        BigDecimal totalCredits = sumByDirection(postings, PostingDirection.CREDIT);
 
         if (totalDebits.compareTo(totalCredits) != 0) {
             throw new InvalidPostingException(
@@ -115,5 +82,36 @@ public class TransactionService {
         transaction.setStatus(TransactionStatus.POSTED);
         Transaction saved = transactionRepository.save(transaction);
         return MapperUtil.toTransactionResponse(saved);
+    }
+
+
+    public TransactionResponse getById(UUID id) {
+        Transaction transaction = transactionRepository
+                .findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        ErrorCode.TRANSACTION_NOT_FOUND, String.format("Transaction with ID '%s' not found", id)));
+        return MapperUtil.toTransactionResponse(transaction);
+    }
+
+    public TransactionResponse getByReference(String reference) {
+        Transaction transaction = transactionRepository
+                .findByReference(reference)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        ErrorCode.TRANSACTION_NOT_FOUND,
+                        String.format("Transaction with reference '%s' not found", reference)));
+        return MapperUtil.toTransactionResponse(transaction);
+    }
+
+    public List<TransactionResponse> listByStatus(TransactionStatus status) {
+        return status == null
+                ? MapperUtil.toTransactionResponseList(transactionRepository.findAll())
+                : MapperUtil.toTransactionResponseList(transactionRepository.findByStatus(status));
+    }
+
+    private BigDecimal sumByDirection(List<Posting> postings, PostingDirection direction) {
+        return postings.stream()
+                .filter(posting -> posting.getDirection() == direction)
+                .map(posting -> posting.getAmount())
+                .reduce(BigDecimal.ZERO, (first, second) -> first.add(second));
     }
 }
