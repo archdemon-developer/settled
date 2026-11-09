@@ -45,7 +45,7 @@ public class MapperUtil {
         return PostingResponse.builder()
                 .id(posting.getId())
                 .accountId(posting.getAccount().getId())
-                .amount(posting.getAmount())
+                .amount(posting.getAmount().setScale(4))
                 .direction(posting.getDirection())
                 .createdAt(posting.getCreatedAt())
                 .build();

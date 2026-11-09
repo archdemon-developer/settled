@@ -9,12 +9,14 @@ import com.settled.exceptions.ResourceNotFoundException;
 import com.settled.models.entities.Posting;
 import com.settled.models.entities.Transaction;
 import com.settled.models.requests.CreateTransactionRequest;
+import com.settled.models.responses.TransactionDetailResponse;
 import com.settled.models.responses.TransactionResponse;
 import com.settled.repositories.PostingRepository;
 import com.settled.repositories.TransactionRepository;
 import com.settled.utils.MapperUtil;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +30,7 @@ public class TransactionService {
     private final PostingRepository postingRepository;
 
     @Transactional
-    public TransactionResponse create(CreateTransactionRequest request) {
+    public TransactionDetailResponse create(CreateTransactionRequest request) {
 
         if (transactionRepository.findByReference(request.getReference()).isPresent()) {
             throw new DuplicateResourceException(
@@ -45,11 +47,11 @@ public class TransactionService {
                 .build();
 
         Transaction saved = transactionRepository.save(transaction);
-        return MapperUtil.toTransactionResponse(saved);
+        return MapperUtil.toTransactionDetailResponse(saved, new ArrayList<>());
     }
 
-        @Transactional
-    public TransactionResponse markAsPosted(UUID id) {
+    @Transactional
+    public TransactionDetailResponse markAsPosted(UUID id) {
         Transaction transaction = transactionRepository
                 .findByIdForUpdate(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -81,25 +83,26 @@ public class TransactionService {
 
         transaction.setStatus(TransactionStatus.POSTED);
         Transaction saved = transactionRepository.save(transaction);
-        return MapperUtil.toTransactionResponse(saved);
+        return MapperUtil.toTransactionDetailResponse(saved, postings);
     }
 
-
-    public TransactionResponse getById(UUID id) {
+    public TransactionDetailResponse getById(UUID id) {
         Transaction transaction = transactionRepository
                 .findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         ErrorCode.TRANSACTION_NOT_FOUND, String.format("Transaction with ID '%s' not found", id)));
-        return MapperUtil.toTransactionResponse(transaction);
+        List<Posting> postings = postingRepository.findByTransactionId(id);
+        return MapperUtil.toTransactionDetailResponse(transaction, postings);
     }
 
-    public TransactionResponse getByReference(String reference) {
+    public TransactionDetailResponse getByReference(String reference) {
         Transaction transaction = transactionRepository
                 .findByReference(reference)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         ErrorCode.TRANSACTION_NOT_FOUND,
                         String.format("Transaction with reference '%s' not found", reference)));
-        return MapperUtil.toTransactionResponse(transaction);
+        List<Posting> postings = postingRepository.findByTransactionId(transaction.getId());
+        return MapperUtil.toTransactionDetailResponse(transaction, postings);
     }
 
     public List<TransactionResponse> listByStatus(TransactionStatus status) {

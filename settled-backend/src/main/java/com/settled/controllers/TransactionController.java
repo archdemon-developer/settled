@@ -45,7 +45,7 @@ public class TransactionController {
     @ApiResponse(responseCode = "201", description = "Transaction created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request - missing or invalid fields")
     @ApiResponse(responseCode = "409", description = "Conflict - duplicate transaction reference")
-    public ResponseEntity<ResponseWrapper<TransactionResponse>> createTransaction(
+    public ResponseEntity<ResponseWrapper<TransactionDetailResponse>> createTransaction(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                             description = "Transaction details with reference and posted date",
                             required = true,
@@ -56,7 +56,7 @@ public class TransactionController {
                     @Valid
                     @RequestBody
                     CreateTransactionRequest request) {
-        TransactionResponse data = transactionService.create(request);
+        TransactionDetailResponse data = transactionService.create(request);
         return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.CREATED.value(), data), HttpStatus.CREATED);
     }
 
@@ -67,9 +67,9 @@ public class TransactionController {
                     "Retrieves a transaction by its UUID. Returns the transaction details along with any postings that have been added.")
     @ApiResponse(responseCode = "200", description = "Transaction found and returned")
     @ApiResponse(responseCode = "404", description = "Transaction not found")
-    public ResponseEntity<ResponseWrapper<TransactionResponse>> getTransaction(
+    public ResponseEntity<ResponseWrapper<TransactionDetailResponse>> getTransaction(
             @Parameter(description = "Transaction UUID", required = true) @PathVariable UUID id) {
-        TransactionResponse data = transactionService.getById(id);
+        TransactionDetailResponse data = transactionService.getById(id);
         return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
     }
 
@@ -100,9 +100,9 @@ public class TransactionController {
     @ApiResponse(
             responseCode = "422",
             description = "Transaction has no postings, or its debits do not equal its credits")
-    public ResponseEntity<ResponseWrapper<TransactionResponse>> markAsPosted(
+    public ResponseEntity<ResponseWrapper<TransactionDetailResponse>> markAsPosted(
             @Parameter(description = "Transaction UUID", required = true) @PathVariable UUID id) {
-        TransactionResponse data = transactionService.markAsPosted(id);
+        TransactionDetailResponse data = transactionService.markAsPosted(id);
         return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
     }
 

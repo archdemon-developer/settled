@@ -114,7 +114,11 @@ public class LedgerFlowIntegrationTests {
                 .isOk()
                 .expectBody()
                 .jsonPath("$.data.status")
-                .isEqualTo("POSTED");
+                .isEqualTo("POSTED")
+                .jsonPath("$.data.postings.length()")
+                .isEqualTo(2)
+                .jsonPath("$.data.postings[0].amount")
+                .isEqualTo("100.5000");
 
         client.get()
                 .uri("/api/v1/transactions/{id}", transactionId)
@@ -123,7 +127,9 @@ public class LedgerFlowIntegrationTests {
                 .isOk()
                 .expectBody()
                 .jsonPath("$.data.status")
-                .isEqualTo("POSTED");
+                .isEqualTo("POSTED")
+                .jsonPath("$.data.postings.length()")
+                .isEqualTo(2);
 
         client.get()
                 .uri("/api/v1/transactions?status=POSTED")
@@ -289,7 +295,7 @@ public class LedgerFlowIntegrationTests {
                 .isCreated()
                 .expectBody()
                 .jsonPath("$.data.postings[0].amount")
-                .isEqualTo("100.50");
+                .isEqualTo("100.5000");
     }
 
     @Test
@@ -423,6 +429,26 @@ public class LedgerFlowIntegrationTests {
                 .isEqualTo("VAL_001")
                 .jsonPath("$.error.violations[0].field")
                 .isEqualTo("amount");
+    }
+
+    @Test
+    public void testGetTransaction_returnsItsPostings() {
+        String checking = createAccount("CHK001", "CHECKING");
+        String savings = createAccount("SAV001", "SAVINGS");
+        String transactionId = createBalancedTransaction(checking, savings);
+
+        client.get()
+                .uri("/api/v1/transactions/{id}", transactionId)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.data.postings.length()")
+                .isEqualTo(2)
+                .jsonPath("$.data.postings[0].amount")
+                .isEqualTo("100.0000")
+                .jsonPath("$.data.postings[1].amount")
+                .isEqualTo("100.0000");
     }
 
     private String createBalancedTransaction(String debitAccountId, String creditAccountId) {

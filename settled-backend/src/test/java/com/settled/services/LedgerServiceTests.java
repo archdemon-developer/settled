@@ -91,7 +91,7 @@ public class LedgerServiceTests {
         assertEquals("TXN001", response.getReference());
         assertEquals(TransactionStatus.DRAFT, response.getStatus());
         assertEquals(1, response.getPostings().size());
-        assertEquals(new BigDecimal("100.00"), response.getPostings().get(0).getAmount());
+        assertEquals(new BigDecimal("100.0000"), response.getPostings().get(0).getAmount());
 
         verify(transactionRepository, times(1)).findByIdForUpdate(txnId);
         verify(accountRepository, times(1)).findById(accountId);

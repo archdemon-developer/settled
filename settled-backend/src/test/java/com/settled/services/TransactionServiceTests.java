@@ -3,6 +3,7 @@ package com.settled.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -19,6 +20,7 @@ import com.settled.models.entities.Account;
 import com.settled.models.entities.Posting;
 import com.settled.models.entities.Transaction;
 import com.settled.models.requests.CreateTransactionRequest;
+import com.settled.models.responses.TransactionDetailResponse;
 import com.settled.models.responses.TransactionResponse;
 import com.settled.repositories.PostingRepository;
 import com.settled.repositories.TransactionRepository;
@@ -92,7 +94,7 @@ public class TransactionServiceTests {
 
         when(transactionRepository.save(captor.capture())).thenReturn(savedTransaction);
 
-        TransactionResponse response = transactionService.create(request);
+        TransactionDetailResponse response = transactionService.create(request);
 
         Transaction captured = captor.getValue();
         assertNotNull(response);
@@ -100,9 +102,12 @@ public class TransactionServiceTests {
         assertEquals("Test Transaction", captured.getDescription());
         assertEquals(now, captured.getPostedAt());
         assertEquals(TransactionStatus.DRAFT, captured.getStatus());
+        assertNotNull(response.getPostings());
+        assertTrue(response.getPostings().isEmpty());
 
         verify(transactionRepository, times(1)).findByReference("TXN123");
         verify(transactionRepository, times(1)).save(captor.getValue());
+        verify(postingRepository, never()).findByTransactionId(any());
     }
 
     @Test
@@ -119,7 +124,7 @@ public class TransactionServiceTests {
 
         when(transactionRepository.findById(txnId)).thenReturn(Optional.of(transaction));
 
-        TransactionResponse response = transactionService.getById(txnId);
+        TransactionDetailResponse response = transactionService.getById(txnId);
 
         assertNotNull(response);
         assertEquals("TXN123", response.getReference());
@@ -135,6 +140,7 @@ public class TransactionServiceTests {
         when(transactionRepository.findById(txnId)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> transactionService.getById(txnId));
         verify(transactionRepository, times(1)).findById(txnId);
+        verify(postingRepository, never()).findByTransactionId(any());
     }
 
     @Test
@@ -151,15 +157,28 @@ public class TransactionServiceTests {
                 .createdAt(Instant.now())
                 .build();
 
-        when(transactionRepository.findByReference(reference)).thenReturn(Optional.of(transaction));
+        Posting posting = Posting.builder()
+                .id(UUID.randomUUID())
+                .transaction(transaction)
+                .account(Account.builder().id(UUID.randomUUID()).build())
+                .amount(new BigDecimal("100.0000"))
+                .direction(PostingDirection.DEBIT)
+                .createdAt(Instant.now())
+                .build();
 
-        TransactionResponse response = transactionService.getByReference(reference);
+        when(transactionRepository.findByReference(reference)).thenReturn(Optional.of(transaction));
+        when(postingRepository.findByTransactionId(txnId)).thenReturn(List.of(posting));
+
+        TransactionDetailResponse response = transactionService.getByReference(reference);
 
         assertNotNull(response);
         assertEquals(reference, response.getReference());
         assertEquals(TransactionStatus.DRAFT, response.getStatus());
+        assertEquals(1, response.getPostings().size());
+        assertEquals(PostingDirection.DEBIT, response.getPostings().get(0).getDirection());
 
         verify(transactionRepository, times(1)).findByReference(reference);
+        verify(postingRepository, times(1)).findByTransactionId(txnId);
     }
 
     @Test
@@ -310,13 +329,16 @@ public class TransactionServiceTests {
 
         when(transactionRepository.save(captor.capture())).thenReturn(postedTransaction);
 
-        TransactionResponse response = transactionService.markAsPosted(txnId);
+        TransactionDetailResponse response = transactionService.markAsPosted(txnId);
 
         Transaction captured = captor.getValue();
         assertEquals(TransactionStatus.POSTED, captured.getStatus());
 
         assertNotNull(response);
         assertEquals(TransactionStatus.POSTED, response.getStatus());
+        assertEquals(2, response.getPostings().size());
+        assertEquals(PostingDirection.DEBIT, response.getPostings().get(0).getDirection());
+        assertEquals(PostingDirection.CREDIT, response.getPostings().get(1).getDirection());
 
         verify(transactionRepository, times(1)).findByIdForUpdate(txnId);
         verify(postingRepository, times(1)).findByTransactionId(txnId);
