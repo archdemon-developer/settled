@@ -7,8 +7,13 @@ export const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', redirect: '/accounts' },
-    { path: '/accounts', component: AccountListPage },
-    { path: '/accounts/:id', component: AccountDetailView },
+    {
+      path: '/accounts',
+      children: [
+        { path: '', component: AccountListPage },
+        { path: ':id', component: AccountDetailView },
+      ],
+    },
     { path: '/transactions', component: TransactionListPage },
   ],
 });
