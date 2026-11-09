@@ -12,12 +12,12 @@ export function listTransactions(status?: TransactionStatus): Promise<Transactio
   return api.get<Transaction[]>(`/transactions${query}`);
 }
 
-export function getTransaction(transactionId: string): Promise<Transaction> {
-  return api.get<Transaction>(`/transactions/${encodeURIComponent(transactionId)}`);
+export function getTransaction(transactionId: string): Promise<TransactionDetail> {
+  return api.get<TransactionDetail>(`/transactions/${encodeURIComponent(transactionId)}`);
 }
 
-export function createTransaction(request: CreateTransactionRequest): Promise<Transaction> {
-  return api.post<Transaction>('/transactions', request);
+export function createTransaction(request: CreateTransactionRequest): Promise<TransactionDetail> {
+  return api.post<TransactionDetail>('/transactions', request);
 }
 
 export function addPosting(
@@ -30,6 +30,6 @@ export function addPosting(
   );
 }
 
-export function postTransaction(transactionId: string): Promise<Transaction> {
-  return api.post<Transaction>(`/transactions/${encodeURIComponent(transactionId)}/post`);
+export function postTransaction(transactionId: string): Promise<TransactionDetail> {
+  return api.post<TransactionDetail>(`/transactions/${encodeURIComponent(transactionId)}/post`);
 }
