@@ -49,5 +49,5 @@ The test for composite versus section is whether the component knows anything ab
 - Reusable pieces cannot quietly depend on ledger logic, and pages stay small.
 - Loading and error state sit next to the code that loads, in the section.
 - More folders and a rule to remember. The composite and sections boundary is a judgement call and will occasionally be argued.
-- The import rules are convention until they are enforced. Planned follow-ups: a `@/` path alias, and ESLint `no-restricted-imports` overrides per folder. Neither is in place yet.
+- The import rules are enforced by ESLint `no-restricted-imports` overrides per folder in `eslint.config.mjs`, and cross-folder imports use the `@/` alias (parent-relative paths are banned). Raw `<button>` and `<input>` in sections and views are not machine-checked and stay a review convention.
 - Moving a component between levels later means changing its imports, so the rule of two matters.
