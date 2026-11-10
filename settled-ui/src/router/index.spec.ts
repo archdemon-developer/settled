@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { router } from './index';
 import AccountListPage from '../views/AccountListPage.vue';
-import AccountDetailView from '../views/AccountDetailView.vue';
+import AccountDetailPage from '../views/AccountDetailPage.vue';
 import TransactionListPage from '../views/TransactionListPage.vue';
 
 function componentFor(path: string) {
@@ -16,7 +16,7 @@ describe('router', () => {
   it('resolves the account detail page and exposes the id param', () => {
     const resolved = router.resolve('/accounts/abc-123');
 
-    expect(resolved.matched.at(-1)?.components?.default).toBe(AccountDetailView);
+    expect(resolved.matched.at(-1)?.components?.default).toBe(AccountDetailPage);
     expect(resolved.params.id).toBe('abc-123');
   });
 

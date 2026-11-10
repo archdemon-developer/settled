@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import AccountListPage from '../views/AccountListPage.vue';
-import AccountDetailView from '../views/AccountDetailView.vue';
+import AccountDetailPage from '../views/AccountDetailPage.vue';
 import TransactionListPage from '../views/TransactionListPage.vue';
 
 export const router = createRouter({
@@ -11,7 +11,7 @@ export const router = createRouter({
       path: '/accounts',
       children: [
         { path: '', component: AccountListPage },
-        { path: ':id', component: AccountDetailView },
+        { path: ':id', component: AccountDetailPage },
       ],
     },
     { path: '/transactions', component: TransactionListPage },
