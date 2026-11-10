@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { router } from './index';
-import AccountListPage from '../views/AccountListPage.vue';
-import AccountDetailPage from '../views/AccountDetailPage.vue';
-import TransactionListPage from '../views/TransactionListPage.vue';
+import AccountListPage from '@/views/AccountListPage.vue';
+import AccountDetailPage from '@/views/AccountDetailPage.vue';
+import TransactionListPage from '@/views/TransactionListPage.vue';
 
 function componentFor(path: string) {
   return router.resolve(path).matched.at(-1)?.components?.default;

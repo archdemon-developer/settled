@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { ApiError } from '../../../api/client';
+import { ApiError } from '@/api/client';
 
-import { useLedgerStore } from '../../../stores/ledger';
+import { useLedgerStore } from '@/stores/ledger';
 
 const props = defineProps<{ accountId: string }>();
 const ledger = useLedgerStore();

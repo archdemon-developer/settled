@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import AccountCreateForm from '../components/sections/accounts/AccountCreateForm.vue';
-import AccountList from '../components/sections/accounts/AccountList.vue';
+import AccountCreateForm from '@/components/sections/accounts/AccountCreateForm.vue';
+import AccountList from '@/components/sections/accounts/AccountList.vue';
 </script>
 
 <template>

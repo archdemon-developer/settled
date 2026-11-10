@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { mount, RouterLinkStub } from '@vue/test-utils';
-import AccountDetail from '../components/sections/accounts/AccountDetail.vue';
+import AccountDetail from '@/components/sections/accounts/AccountDetail.vue';
 import AccountDetailPage from './AccountDetailPage.vue';
 
 vi.mock('vue-router', () => ({ useRoute: () => ({ params: { id: '7' } }) }));

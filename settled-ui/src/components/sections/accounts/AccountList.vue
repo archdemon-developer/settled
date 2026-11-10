@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { ApiError } from '../../../api/client';
-import { useLedgerStore } from '../../../stores/ledger';
+import { ApiError } from '@/api/client';
+import { useLedgerStore } from '@/stores/ledger';
 
 const ledger = useLedgerStore();
 const isLoading = ref(true);

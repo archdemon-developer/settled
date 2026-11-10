@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
-import { ApiError } from '../../../api/client';
-import { useLedgerStore } from '../../../stores/ledger';
-import { ACCOUNT_TYPES } from '../../../types/api';
-import type { AccountType } from '../../../types/api';
+import { ApiError } from '@/api/client';
+import { useLedgerStore } from '@/stores/ledger';
+import { ACCOUNT_TYPES } from '@/types/api';
+import type { AccountType } from '@/types/api';
 
 const ledger = useLedgerStore();
 

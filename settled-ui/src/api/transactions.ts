@@ -5,7 +5,7 @@ import type {
   Transaction,
   TransactionDetail,
   TransactionStatus,
-} from '../types/api';
+} from '@/types/api';
 
 export function listTransactions(status?: TransactionStatus): Promise<Transaction[]> {
   const query = status ? `?status=${encodeURIComponent(status)}` : '';

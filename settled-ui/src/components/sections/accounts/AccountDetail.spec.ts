@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import * as accountsApi from '../../../api/accounts';
-import { ApiError } from '../../../api/client';
-import type { Account } from '../../../types/api';
+import * as accountsApi from '@/api/accounts';
+import { ApiError } from '@/api/client';
+import type { Account } from '@/types/api';
 import AccountDetail from './AccountDetail.vue';
 import { createPinia, setActivePinia } from 'pinia';
 import { flushPromises, mount } from '@vue/test-utils';
 
-vi.mock('../../../api/accounts'); // delete the vue-router mock line
+vi.mock('@/api/accounts'); // delete the vue-router mock line
 
 function account(overrides: Partial<Account> = {}): Account {
   return {

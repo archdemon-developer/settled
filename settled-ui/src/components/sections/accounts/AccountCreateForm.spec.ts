@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
-import * as accountsApi from '../../../api/accounts';
-import { ApiError } from '../../../api/client';
-import { useLedgerStore } from '../../../stores/ledger';
-import type { Account } from '../../../types/api';
+import * as accountsApi from '@/api/accounts';
+import { ApiError } from '@/api/client';
+import { useLedgerStore } from '@/stores/ledger';
+import type { Account } from '@/types/api';
 import AccountCreateForm from './AccountCreateForm.vue';
 
-vi.mock('../../../api/accounts');
+vi.mock('@/api/accounts');
 
 function account(overrides: Partial<Account> = {}): Account {
   return {

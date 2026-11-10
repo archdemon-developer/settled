@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import AccountListPage from '../views/AccountListPage.vue';
-import AccountDetailPage from '../views/AccountDetailPage.vue';
-import TransactionListPage from '../views/TransactionListPage.vue';
+import AccountListPage from '@/views/AccountListPage.vue';
+import AccountDetailPage from '@/views/AccountDetailPage.vue';
+import TransactionListPage from '@/views/TransactionListPage.vue';
 
 export const router = createRouter({
   history: createWebHistory(),

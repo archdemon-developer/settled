@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { mount } from '@vue/test-utils';
-import AccountCreateForm from '../components/sections/accounts/AccountCreateForm.vue';
-import AccountList from '../components/sections/accounts/AccountList.vue';
+import AccountCreateForm from '@/components/sections/accounts/AccountCreateForm.vue';
+import AccountList from '@/components/sections/accounts/AccountList.vue';
 import AccountListPage from './AccountListPage.vue';
 
 describe('AccountListPage', () => {
