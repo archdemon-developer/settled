@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { ApiError } from '@/api/client';
 
 import { useLedgerStore } from '@/stores/ledger';
+import BaseButton from '@/components/base/BaseButton.vue';
 
 const props = defineProps<{ accountId: string }>();
 const ledger = useLedgerStore();
@@ -61,15 +62,14 @@ async function archive() {
 
       <p v-if="errorMessage" class="mt-4 text-sm text-red-700">{{ errorMessage }}</p>
 
-      <button
+      <BaseButton
         v-if="account.status === 'ACTIVE'"
-        type="button"
         :disabled="isArchiving"
-        class="mt-6 rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        class="mt-6"
         @click="archive"
       >
         Archive account
-      </button>
+      </BaseButton>
     </div>
   </div>
 </template>

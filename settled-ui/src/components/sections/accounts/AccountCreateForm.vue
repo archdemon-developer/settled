@@ -4,7 +4,7 @@ import { ApiError } from '@/api/client';
 import { useLedgerStore } from '@/stores/ledger';
 import { ACCOUNT_TYPES } from '@/types/api';
 import type { AccountType } from '@/types/api';
-
+import BaseButton from '@/components/base/BaseButton.vue';
 const ledger = useLedgerStore();
 
 const form = reactive({ code: '', name: '', type: 'CHECKING' as AccountType });
@@ -76,12 +76,8 @@ async function submit() {
 
     <p v-if="formError" class="text-sm text-red-700">{{ formError }}</p>
 
-    <button
-      type="submit"
-      :disabled="isSubmitting"
-      class="self-start rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-    >
+    <BaseButton type="submit" :disabled="isSubmitting" class="self-start">
       Create account
-    </button>
+    </BaseButton>
   </form>
 </template>
