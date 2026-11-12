@@ -14,6 +14,8 @@ import FormField from '@/components/composite/FormField.vue';
 const ledger = useLedgerStore();
 
 const form = reactive({ code: '', name: '', type: 'CHECKING' as AccountType });
+const accountTypeOptions = ACCOUNT_TYPES.map((type) => ({ value: type, label: type }));
+
 const fieldErrors = ref<Record<string, string>>({});
 const formError = ref<string | null>(null);
 const isSubmitting = ref(false);
@@ -53,10 +55,9 @@ async function submit() {
     </FormField>
 
     <FormField id="account-type" label="Type" :error="fieldErrors.type" v-slot="{ id }">
-      <BaseSelect :id="id" v-model="form.type">
-        <option v-for="type in ACCOUNT_TYPES" :key="type" :value="type">{{ type }}</option>
-      </BaseSelect>
+      <BaseSelect :id="id" v-model="form.type" :options="accountTypeOptions" />
     </FormField>
+
     <BaseMessage v-if="formError" tone="error">{{ formError }}</BaseMessage>
 
     <BaseButton type="submit" :disabled="isSubmitting" class="self-start">
