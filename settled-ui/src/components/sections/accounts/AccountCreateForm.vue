@@ -5,6 +5,9 @@ import { useLedgerStore } from '@/stores/ledger';
 import { ACCOUNT_TYPES } from '@/types/api';
 import type { AccountType } from '@/types/api';
 import BaseButton from '@/components/base/BaseButton.vue';
+import BaseInput from '@/components/base/BaseInput.vue';
+import BaseSelect from '@/components/base/BaseSelect.vue';
+
 const ledger = useLedgerStore();
 
 const form = reactive({ code: '', name: '', type: 'CHECKING' as AccountType });
@@ -40,37 +43,21 @@ async function submit() {
   <form class="flex max-w-md flex-col gap-4" @submit.prevent="submit">
     <div class="flex flex-col gap-1">
       <label for="account-code" class="text-sm font-medium text-slate-900">Code</label>
-      <input
-        id="account-code"
-        v-model="form.code"
-        required
-        maxlength="50"
-        class="rounded border border-slate-300 px-3 py-2 text-sm"
-      />
+      <BaseInput id="account-code" v-model="form.code" required maxlength="50" />
       <p v-if="fieldErrors.code" class="text-sm text-red-700">{{ fieldErrors.code }}</p>
     </div>
 
     <div class="flex flex-col gap-1">
       <label for="account-name" class="text-sm font-medium text-slate-900">Name</label>
-      <input
-        id="account-name"
-        v-model="form.name"
-        required
-        maxlength="255"
-        class="rounded border border-slate-300 px-3 py-2 text-sm"
-      />
+      <BaseInput id="account-name" v-model="form.name" required maxlength="255" />
       <p v-if="fieldErrors.name" class="text-sm text-red-700">{{ fieldErrors.name }}</p>
     </div>
 
     <div class="flex flex-col gap-1">
       <label for="account-type" class="text-sm font-medium text-slate-900">Type</label>
-      <select
-        id="account-type"
-        v-model="form.type"
-        class="rounded border border-slate-300 px-3 py-2 text-sm"
-      >
+      <BaseSelect id="account-type" v-model="form.type">
         <option v-for="type in ACCOUNT_TYPES" :key="type" :value="type">{{ type }}</option>
-      </select>
+      </BaseSelect>
       <p v-if="fieldErrors.type" class="text-sm text-red-700">{{ fieldErrors.type }}</p>
     </div>
 
