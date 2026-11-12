@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue';
 import { ApiError } from '@/api/client';
 import { useLedgerStore } from '@/stores/ledger';
 
+import BaseMessage from '@/components/base/BaseMessage.vue';
 const ledger = useLedgerStore();
 const isLoading = ref(true);
 const errorMessage = ref<string | null>(null);
@@ -23,11 +24,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <p v-if="isLoading" class="mt-4 text-sm text-slate-500">Loading accounts...</p>
-  <p v-else-if="errorMessage" class="mt-4 text-sm text-red-700">{{ errorMessage }}</p>
-  <p v-else-if="ledger.accounts.length === 0" class="mt-4 text-sm text-slate-500">
+  <BaseMessage v-if="isLoading" tone="muted" class="mt-4">Loading accounts...</BaseMessage>
+  <BaseMessage v-else-if="errorMessage" tone="error" class="mt-4">{{ errorMessage }}</BaseMessage>
+  <BaseMessage v-else-if="ledger.accounts.length === 0" tone="muted" class="mt-4">
     No accounts yet.
-  </p>
+  </BaseMessage>
 
   <table v-else class="mt-4 w-full text-left text-sm">
     <thead class="border-b border-slate-200 text-slate-500">

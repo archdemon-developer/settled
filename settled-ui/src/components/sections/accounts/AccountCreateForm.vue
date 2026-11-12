@@ -7,6 +7,7 @@ import type { AccountType } from '@/types/api';
 import BaseButton from '@/components/base/BaseButton.vue';
 import BaseInput from '@/components/base/BaseInput.vue';
 import BaseSelect from '@/components/base/BaseSelect.vue';
+import BaseMessage from '@/components/base/BaseMessage.vue';
 
 const ledger = useLedgerStore();
 
@@ -61,7 +62,7 @@ async function submit() {
       <p v-if="fieldErrors.type" class="text-sm text-red-700">{{ fieldErrors.type }}</p>
     </div>
 
-    <p v-if="formError" class="text-sm text-red-700">{{ formError }}</p>
+    <BaseMessage v-if="formError" tone="error">{{ formError }}</BaseMessage>
 
     <BaseButton type="submit" :disabled="isSubmitting" class="self-start">
       Create account

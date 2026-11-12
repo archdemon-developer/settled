@@ -4,6 +4,7 @@ import { ApiError } from '@/api/client';
 
 import { useLedgerStore } from '@/stores/ledger';
 import BaseButton from '@/components/base/BaseButton.vue';
+import BaseMessage from '@/components/base/BaseMessage.vue';
 
 const props = defineProps<{ accountId: string }>();
 const ledger = useLedgerStore();
@@ -43,9 +44,10 @@ async function archive() {
 
 <template>
   <div>
-    <p v-if="isLoading" class="mt-4 text-sm text-slate-500">Loading account…</p>
-    <p v-else-if="errorMessage && !account" class="mt-4 text-sm text-red-700">{{ errorMessage }}</p>
-
+    <BaseMessage v-if="isLoading" tone="muted" class="mt-4">Loading account…</BaseMessage>
+    <BaseMessage v-else-if="errorMessage && !account" tone="error" class="mt-4">
+      {{ errorMessage }}
+    </BaseMessage>
     <div v-else-if="account" class="mt-4">
       <h2 class="text-xl font-semibold text-slate-900">{{ account.code }}</h2>
 
@@ -60,8 +62,7 @@ async function archive() {
         <dd>{{ new Date(account.createdAt).toLocaleString() }}</dd>
       </dl>
 
-      <p v-if="errorMessage" class="mt-4 text-sm text-red-700">{{ errorMessage }}</p>
-
+      <BaseMessage v-if="errorMessage" tone="error" class="mt-4">{{ errorMessage }}</BaseMessage>
       <BaseButton
         v-if="account.status === 'ACTIVE'"
         :disabled="isArchiving"
