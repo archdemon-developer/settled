@@ -4,10 +4,12 @@ import { ApiError } from '@/api/client';
 import { useLedgerStore } from '@/stores/ledger';
 import { ACCOUNT_TYPES } from '@/types/api';
 import type { AccountType } from '@/types/api';
+
 import BaseButton from '@/components/base/BaseButton.vue';
 import BaseInput from '@/components/base/BaseInput.vue';
 import BaseSelect from '@/components/base/BaseSelect.vue';
 import BaseMessage from '@/components/base/BaseMessage.vue';
+import FormField from '@/components/composite/FormField.vue';
 
 const ledger = useLedgerStore();
 
@@ -42,26 +44,19 @@ async function submit() {
 
 <template>
   <form class="flex max-w-md flex-col gap-4" @submit.prevent="submit">
-    <div class="flex flex-col gap-1">
-      <label for="account-code" class="text-sm font-medium text-slate-900">Code</label>
-      <BaseInput id="account-code" v-model="form.code" required maxlength="50" />
-      <p v-if="fieldErrors.code" class="text-sm text-red-700">{{ fieldErrors.code }}</p>
-    </div>
+    <FormField id="account-code" label="Code" :error="fieldErrors.code" v-slot="{ id }">
+      <BaseInput :id="id" v-model="form.code" required maxlength="50" />
+    </FormField>
 
-    <div class="flex flex-col gap-1">
-      <label for="account-name" class="text-sm font-medium text-slate-900">Name</label>
-      <BaseInput id="account-name" v-model="form.name" required maxlength="255" />
-      <p v-if="fieldErrors.name" class="text-sm text-red-700">{{ fieldErrors.name }}</p>
-    </div>
+    <FormField id="account-name" label="Name" :error="fieldErrors.name" v-slot="{ id }">
+      <BaseInput :id="id" v-model="form.name" required maxlength="255" />
+    </FormField>
 
-    <div class="flex flex-col gap-1">
-      <label for="account-type" class="text-sm font-medium text-slate-900">Type</label>
-      <BaseSelect id="account-type" v-model="form.type">
+    <FormField id="account-type" label="Type" :error="fieldErrors.type" v-slot="{ id }">
+      <BaseSelect :id="id" v-model="form.type">
         <option v-for="type in ACCOUNT_TYPES" :key="type" :value="type">{{ type }}</option>
       </BaseSelect>
-      <p v-if="fieldErrors.type" class="text-sm text-red-700">{{ fieldErrors.type }}</p>
-    </div>
-
+    </FormField>
     <BaseMessage v-if="formError" tone="error">{{ formError }}</BaseMessage>
 
     <BaseButton type="submit" :disabled="isSubmitting" class="self-start">

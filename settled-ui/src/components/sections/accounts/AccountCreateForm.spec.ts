@@ -137,4 +137,12 @@ describe('AccountCreateForm', () => {
 
     expect(wrapper.text()).toContain('Type is required');
   });
+
+  it('labels each control so it can be reached by its label', () => {
+    const { wrapper } = mountForm();
+
+    expect(wrapper.find('label[for="account-code"]').text()).toBe('Code');
+    expect(wrapper.find('label[for="account-name"]').text()).toBe('Name');
+    expect(wrapper.find('label[for="account-type"]').text()).toBe('Type');
+  });
 });
