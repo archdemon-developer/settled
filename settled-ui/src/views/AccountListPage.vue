@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import AccountCreateForm from '@/components/sections/accounts/AccountCreateForm.vue';
 import AccountList from '@/components/sections/accounts/AccountList.vue';
+import BasePageTitle from '@/components/base/BasePageTitle.vue';
 </script>
 
 <template>
-  <h2 class="text-xl font-semibold text-slate-900">Accounts</h2>
+  <BasePageTitle>Accounts</BasePageTitle>
 
   <AccountCreateForm class="mt-4" />
   <AccountList />

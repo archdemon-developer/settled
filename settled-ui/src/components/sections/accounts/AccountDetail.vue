@@ -5,6 +5,7 @@ import { ApiError } from '@/api/client';
 import { useLedgerStore } from '@/stores/ledger';
 import BaseButton from '@/components/base/BaseButton.vue';
 import BaseMessage from '@/components/base/BaseMessage.vue';
+import BasePageTitle from '@/components/base/BasePageTitle.vue';
 
 const props = defineProps<{ accountId: string }>();
 const ledger = useLedgerStore();
@@ -49,7 +50,7 @@ async function archive() {
       {{ errorMessage }}
     </BaseMessage>
     <div v-else-if="account" class="mt-4">
-      <h2 class="text-xl font-semibold text-slate-900">{{ account.code }}</h2>
+      <BasePageTitle>{{ account.code }}</BasePageTitle>
 
       <dl class="mt-4 grid max-w-md grid-cols-[8rem_1fr] gap-y-2 text-sm">
         <dt class="text-slate-500">Name</dt>

@@ -27,7 +27,9 @@ src/
 | base      | composables, utils                                               | All styling (Tailwind) and accessibility (labels, aria, focus) | Know any domain term, touch a store or the API |
 | composite | base, composables, utils                                         | Interaction patterns (open/close, sort, validation display)    | Know the domain, touch a store or the API      |
 | sections  | base, composite, sections of the same domain, stores, api, types | Data fetching, domain logic, form state                        | Import a view                                  |
-| views     | sections, router                                                 | Route params passed down as props                              | Hold logic or fetch data                       |
+| views     | sections, base, router                                           | Route params passed down as props                              | Hold logic or fetch data                       |
+
+Base components know nothing about meaning or behaviour (what a click does, what an account is), but they own their appearance completely: the caller passes semantic props such as `variant`, `size`, `tone` or `level`, and the component decides the classes for each.
 
 Rules:
 
