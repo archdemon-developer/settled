@@ -1,4 +1,4 @@
-import type { ErrorDetails, ResponseWrapper } from '../types/api';
+import type { ErrorDetails, ResponseWrapper } from '@/types/api';
 
 export class ApiError extends Error {
   readonly status: number;

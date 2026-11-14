@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
-import * as accountsApi from '../api/accounts';
-import { ApiError } from '../api/client';
-import type { Account, Transaction } from '../types/api';
+import * as accountsApi from '@/api/accounts';
+import { ApiError } from '@/api/client';
+import type { Account, Transaction } from '@/types/api';
 import { useLedgerStore } from './ledger';
 
-vi.mock('../api/accounts');
+vi.mock('@/api/accounts');
 
 function account(overrides: Partial<Account> = {}): Account {
   return {

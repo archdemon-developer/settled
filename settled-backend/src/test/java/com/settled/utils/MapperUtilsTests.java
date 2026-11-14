@@ -167,7 +167,7 @@ public class MapperUtilsTests {
         assertNotNull(response);
         assertEquals(postingId, response.getId());
         assertEquals(accountId, response.getAccountId());
-        assertEquals(new BigDecimal("100.00"), response.getAmount());
+        assertEquals(new BigDecimal("100.0000"), response.getAmount());
         assertEquals(PostingDirection.DEBIT, response.getDirection());
         assertEquals(now, response.getCreatedAt());
     }

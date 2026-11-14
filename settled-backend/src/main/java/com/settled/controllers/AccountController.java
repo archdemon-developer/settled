@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -39,11 +38,7 @@ public class AccountController {
     @Operation(
             summary = "Create account",
             description = "Creates a new account with a unique code. Accounts are the foundation of the ledger.")
-    @ApiResponse(
-            responseCode = "201",
-            description = "Account created successfully",
-            content =
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseWrapper.class)))
+    @ApiResponse(responseCode = "201", description = "Account created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request")
     @ApiResponse(responseCode = "409", description = "Duplicate account code")
     public ResponseEntity<ResponseWrapper<AccountResponse>> createAccount(
@@ -58,104 +53,47 @@ public class AccountController {
                     @RequestBody
                     CreateAccountRequest request) {
         AccountResponse data = accountService.create(request);
-
-        ResponseWrapper<AccountResponse> response = ResponseWrapper.<AccountResponse>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.CREATED.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.CREATED.value(), data), HttpStatus.CREATED);
     }
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Get account by ID")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Account found",
-            content = @Content(mediaType = "application/json"))
+    @ApiResponse(responseCode = "200", description = "Account found")
     @ApiResponse(responseCode = "404", description = "Account not found")
     public ResponseEntity<ResponseWrapper<AccountResponse>> getAccountById(
             @Parameter(description = "Account UUID", required = true) @PathVariable UUID id) {
         AccountResponse data = accountService.getById(id);
-
-        ResponseWrapper<AccountResponse> response = ResponseWrapper.<AccountResponse>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.OK.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
     }
 
     @GetMapping(value = "/code/{code}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Get account by code")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Account found",
-            content = @Content(mediaType = "application/json"))
+    @ApiResponse(responseCode = "200", description = "Account found")
     @ApiResponse(responseCode = "404", description = "Account not found")
     public ResponseEntity<ResponseWrapper<AccountResponse>> getAccountByCode(
             @Parameter(description = "Account code", required = true) @PathVariable String code) {
         AccountResponse data = accountService.getByCode(code);
-
-        ResponseWrapper<AccountResponse> response = ResponseWrapper.<AccountResponse>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.OK.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "List accounts")
-    @ApiResponse(
-            responseCode = "200",
-            description = "List of accounts",
-            content = @Content(mediaType = "application/json"))
+    @ApiResponse(responseCode = "200", description = "List of accounts")
     public ResponseEntity<ResponseWrapper<List<AccountResponse>>> listAccountsByStatus(
             @Parameter(description = "Filter by account status", schema = @Schema(enumAsRef = true))
                     @RequestParam(required = false)
                     AccountStatus status) {
         List<AccountResponse> data = accountService.listByStatus(status);
-
-        ResponseWrapper<List<AccountResponse>> response = ResponseWrapper.<List<AccountResponse>>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.OK.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
     }
 
     @PutMapping(value = "/{id}/archive", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Archive account")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Account archived",
-            content = @Content(mediaType = "application/json"))
+    @ApiResponse(responseCode = "200", description = "Account archived")
     @ApiResponse(responseCode = "404", description = "Account not found")
     public ResponseEntity<ResponseWrapper<AccountResponse>> archiveAccount(
             @Parameter(description = "Account UUID", required = true) @PathVariable UUID id) {
         AccountResponse data = accountService.archive(id);
-
-        ResponseWrapper<AccountResponse> response = ResponseWrapper.<AccountResponse>builder()
-                .status("SUCCESS")
-                .code(HttpStatus.OK.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .data(data)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(ResponseWrapper.success(HttpStatus.OK.value(), data), HttpStatus.OK);
     }
 }

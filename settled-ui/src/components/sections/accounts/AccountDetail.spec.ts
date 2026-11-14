@@ -1,13 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { flushPromises, mount, RouterLinkStub } from '@vue/test-utils';
+import * as accountsApi from '@/api/accounts';
+import { ApiError } from '@/api/client';
+import type { Account } from '@/types/api';
+import AccountDetail from './AccountDetail.vue';
 import { createPinia, setActivePinia } from 'pinia';
-import * as accountsApi from '../api/accounts';
-import { ApiError } from '../api/client';
-import type { Account } from '../types/api';
-import AccountDetailView from './AccountDetailView.vue';
+import { flushPromises, mount } from '@vue/test-utils';
 
-vi.mock('../api/accounts');
-vi.mock('vue-router', () => ({ useRoute: () => ({ params: { id: '1' } }) }));
+vi.mock('@/api/accounts'); // delete the vue-router mock line
 
 function account(overrides: Partial<Account> = {}): Account {
   return {
@@ -22,23 +21,21 @@ function account(overrides: Partial<Account> = {}): Account {
   };
 }
 
-function mountView() {
+function mountSection() {
   const pinia = createPinia();
   setActivePinia(pinia);
-  return mount(AccountDetailView, {
-    global: { plugins: [pinia], stubs: { RouterLink: RouterLinkStub } },
-  });
+  return mount(AccountDetail, { props: { accountId: '1' }, global: { plugins: [pinia] } });
 }
 
 beforeEach(() => {
   vi.resetAllMocks();
 });
 
-describe('AccountDetailView', () => {
+describe('AccountDetail', () => {
   it('loads the account for the id in the route and shows its details', async () => {
     vi.mocked(accountsApi.getAccount).mockResolvedValue(account());
 
-    const wrapper = mountView();
+    const wrapper = mountSection();
     expect(wrapper.text()).toContain('Loading account');
     await flushPromises();
 
@@ -51,7 +48,7 @@ describe('AccountDetailView', () => {
   it('archives an active account and hides the archive button', async () => {
     vi.mocked(accountsApi.getAccount).mockResolvedValue(account());
     vi.mocked(accountsApi.archiveAccount).mockResolvedValue(account({ status: 'ARCHIVED' }));
-    const wrapper = mountView();
+    const wrapper = mountSection();
     await flushPromises();
 
     await wrapper.find('button').trigger('click');
@@ -65,7 +62,7 @@ describe('AccountDetailView', () => {
   it('offers no archive button for an account that is already archived', async () => {
     vi.mocked(accountsApi.getAccount).mockResolvedValue(account({ status: 'ARCHIVED' }));
 
-    const wrapper = mountView();
+    const wrapper = mountSection();
     await flushPromises();
 
     expect(wrapper.find('button').exists()).toBe(false);
@@ -76,7 +73,7 @@ describe('AccountDetailView', () => {
       new ApiError(404, { errorCode: 'ACC_001', message: 'Account not found' }),
     );
 
-    const wrapper = mountView();
+    const wrapper = mountSection();
     await flushPromises();
 
     expect(wrapper.text()).toContain('Account not found');
@@ -86,7 +83,7 @@ describe('AccountDetailView', () => {
   it('shows a generic message when the server cannot be reached', async () => {
     vi.mocked(accountsApi.getAccount).mockRejectedValue(new TypeError('Failed to fetch'));
 
-    const wrapper = mountView();
+    const wrapper = mountSection();
     await flushPromises();
 
     expect(wrapper.text()).toContain('Could not reach the server');
@@ -97,7 +94,7 @@ describe('AccountDetailView', () => {
     vi.mocked(accountsApi.archiveAccount).mockRejectedValue(
       new ApiError(500, { errorCode: 'SYS_001', message: 'Could not archive' }),
     );
-    const wrapper = mountView();
+    const wrapper = mountSection();
     await flushPromises();
 
     await wrapper.find('button').trigger('click');

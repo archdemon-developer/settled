@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { Account, AccountStatus, CreateAccountRequest } from '../types/api';
+import type { Account, AccountStatus, CreateAccountRequest } from '@/types/api';
 
 export function listAccounts(status?: AccountStatus): Promise<Account[]> {
   const query = status ? `?status=${encodeURIComponent(status)}` : '';

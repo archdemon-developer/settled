@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
-import type { Account, CreateAccountRequest, Transaction } from '../types/api';
-import * as accountsApi from '../api/accounts';
+import type { Account, CreateAccountRequest, Transaction } from '@/types/api';
+import * as accountsApi from '@/api/accounts';
 
 export const useLedgerStore = defineStore('ledger', () => {
   const accounts = ref<Account[]>([]);

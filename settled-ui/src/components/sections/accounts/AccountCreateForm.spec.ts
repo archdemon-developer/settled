@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
-import * as accountsApi from '../api/accounts';
-import { ApiError } from '../api/client';
-import { useLedgerStore } from '../stores/ledger';
-import type { Account } from '../types/api';
+import * as accountsApi from '@/api/accounts';
+import { ApiError } from '@/api/client';
+import { useLedgerStore } from '@/stores/ledger';
+import type { Account } from '@/types/api';
 import AccountCreateForm from './AccountCreateForm.vue';
 
-vi.mock('../api/accounts');
+vi.mock('@/api/accounts');
 
 function account(overrides: Partial<Account> = {}): Account {
   return {
@@ -136,5 +136,13 @@ describe('AccountCreateForm', () => {
     await fillAndSubmit(wrapper);
 
     expect(wrapper.text()).toContain('Type is required');
+  });
+
+  it('labels each control so it can be reached by its label', () => {
+    const { wrapper } = mountForm();
+
+    expect(wrapper.find('label[for="account-code"]').text()).toBe('Code');
+    expect(wrapper.find('label[for="account-name"]').text()).toBe('Name');
+    expect(wrapper.find('label[for="account-type"]').text()).toBe('Type');
   });
 });
