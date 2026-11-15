@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
 import { ApiError } from '@/api/client';
-import { useLedgerStore } from '@/stores/ledger';
+import { useAccountsStore } from '@/stores/accounts';
 import { ACCOUNT_TYPES } from '@/types/api';
 import type { AccountType } from '@/types/api';
 
@@ -11,10 +11,10 @@ import BaseSelect from '@/components/base/BaseSelect.vue';
 import BaseMessage from '@/components/base/BaseMessage.vue';
 import FormField from '@/components/composite/FormField.vue';
 
-const ledger = useLedgerStore();
+const accountsStore = useAccountsStore();
 
 const form = reactive({ code: '', name: '', type: 'CHECKING' as AccountType });
-const accountTypeOptions = ACCOUNT_TYPES.map((type) => ({ value: type, label: type }));
+const accountTypeOptions = ACCOUNT_TYPES.map(type => ({ value: type, label: type }));
 
 const fieldErrors = ref<Record<string, string>>({});
 const formError = ref<string | null>(null);
@@ -25,12 +25,14 @@ async function submit() {
   formError.value = null;
   isSubmitting.value = true;
   try {
-    await ledger.createAccount({ ...form });
+    await accountsStore.createAccount({ ...form });
     form.code = '';
     form.name = '';
   } catch (e) {
     if (e instanceof ApiError && e.error.violations?.length) {
-      fieldErrors.value = Object.fromEntries(e.error.violations.map((v) => [v.field, v.message]));
+      fieldErrors.value = Object.fromEntries(
+        e.error.violations.map(violation => [violation.field, violation.message]),
+      );
     } else if (e instanceof ApiError && e.error.field) {
       fieldErrors.value = { [e.error.field]: e.error.message };
     } else if (e instanceof ApiError) {

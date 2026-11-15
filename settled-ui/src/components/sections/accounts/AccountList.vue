@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { ApiError } from '@/api/client';
-import { useLedgerStore } from '@/stores/ledger';
+import { useAccountsStore } from '@/stores/accounts';
 
 import BaseMessage from '@/components/base/BaseMessage.vue';
-const ledger = useLedgerStore();
+const accountsStore = useAccountsStore();
 const isLoading = ref(true);
 const errorMessage = ref<string | null>(null);
 
 onMounted(async () => {
   try {
-    await ledger.fetchAccounts();
+    await accountsStore.fetchAccounts();
   } catch (error) {
     if (error instanceof ApiError) {
       errorMessage.value = `API Error: ${error.message}`;
@@ -26,7 +26,7 @@ onMounted(async () => {
 <template>
   <BaseMessage v-if="isLoading" tone="muted" class="mt-4">Loading accounts...</BaseMessage>
   <BaseMessage v-else-if="errorMessage" tone="error" class="mt-4">{{ errorMessage }}</BaseMessage>
-  <BaseMessage v-else-if="ledger.accounts.length === 0" tone="muted" class="mt-4">
+  <BaseMessage v-else-if="accountsStore.accounts.length === 0" tone="muted" class="mt-4">
     No accounts yet.
   </BaseMessage>
 
@@ -40,7 +40,11 @@ onMounted(async () => {
       </tr>
     </thead>
     <tbody>
-      <tr v-for="account in ledger.accounts" :key="account.id" class="border-b border-slate-100">
+      <tr
+        v-for="account in accountsStore.accounts"
+        :key="account.id"
+        class="border-b border-slate-100"
+      >
         <td class="py-2">
           <RouterLink
             :to="`/accounts/${account.id}`"

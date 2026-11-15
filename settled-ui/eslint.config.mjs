@@ -14,6 +14,7 @@ function restrictImports(name, files, ...groups) {
     files,
     rules: {
       'no-restricted-imports': ['error', { patterns: [banParentRelative, ...groups] }],
+      'arrow-body-style': ['error', 'as-needed'],
     },
   };
 }

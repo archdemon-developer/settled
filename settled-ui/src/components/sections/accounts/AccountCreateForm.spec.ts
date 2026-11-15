@@ -3,7 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import * as accountsApi from '@/api/accounts';
 import { ApiError } from '@/api/client';
-import { useLedgerStore } from '@/stores/ledger';
+import { useAccountsStore } from '@/stores/accounts';
 import type { Account } from '@/types/api';
 import AccountCreateForm from './AccountCreateForm.vue';
 
@@ -26,7 +26,7 @@ function mountForm() {
   const pinia = createPinia();
   setActivePinia(pinia);
   const wrapper = mount(AccountCreateForm, { global: { plugins: [pinia] } });
-  return { wrapper, store: useLedgerStore(pinia) };
+  return { wrapper, store: useAccountsStore(pinia) };
 }
 
 async function fillAndSubmit(wrapper: ReturnType<typeof mountForm>['wrapper']) {
@@ -108,7 +108,7 @@ describe('AccountCreateForm', () => {
   it('disables the button while the request is in flight', async () => {
     let finish!: (created: Account) => void;
     vi.mocked(accountsApi.createAccount).mockReturnValue(
-      new Promise<Account>((resolve) => {
+      new Promise<Account>(resolve => {
         finish = resolve;
       }),
     );

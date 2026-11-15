@@ -2,15 +2,17 @@
 import { computed, onMounted, ref } from 'vue';
 import { ApiError } from '@/api/client';
 
-import { useLedgerStore } from '@/stores/ledger';
+import { useAccountsStore } from '@/stores/accounts';
 import BaseButton from '@/components/base/BaseButton.vue';
 import BaseMessage from '@/components/base/BaseMessage.vue';
 import BasePageTitle from '@/components/base/BasePageTitle.vue';
 
 const props = defineProps<{ accountId: string }>();
-const ledger = useLedgerStore();
+const accountsStore = useAccountsStore();
 
-const account = computed(() => ledger.accounts.find((a) => a.id === props.accountId));
+const account = computed(() =>
+  accountsStore.accounts.find(account => account.id === props.accountId),
+);
 
 const isLoading = ref(true);
 const isArchiving = ref(false);
@@ -22,7 +24,7 @@ function toMessage(e: unknown): string {
 
 onMounted(async () => {
   try {
-    await ledger.fetchAccount(props.accountId);
+    await accountsStore.fetchAccount(props.accountId);
   } catch (e) {
     errorMessage.value = toMessage(e);
   } finally {
@@ -34,7 +36,7 @@ async function archive() {
   isArchiving.value = true;
   errorMessage.value = null;
   try {
-    await ledger.archiveAccount(props.accountId);
+    await accountsStore.archiveAccount(props.accountId);
   } catch (e) {
     errorMessage.value = toMessage(e);
   } finally {

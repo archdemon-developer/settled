@@ -12,11 +12,8 @@ describe('BaseSelect', () => {
     const wrapper = mount(BaseSelect, { props: { modelValue: 'SAVINGS', options } });
 
     const rendered = wrapper.findAll('option');
-    expect(rendered.map((option) => option.text())).toEqual([
-      'Checking account',
-      'Savings account',
-    ]);
-    expect(rendered.map((option) => option.attributes('value'))).toEqual(['CHECKING', 'SAVINGS']);
+    expect(rendered.map(option => option.text())).toEqual(['Checking account', 'Savings account']);
+    expect(rendered.map(option => option.attributes('value'))).toEqual(['CHECKING', 'SAVINGS']);
     expect(wrapper.find<HTMLSelectElement>('select').element.value).toBe('SAVINGS');
   });
 

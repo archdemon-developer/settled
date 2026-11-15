@@ -36,8 +36,8 @@ describe('AppSidebar', () => {
 
     const links = wrapper.findAll('a');
 
-    expect(links.map((link) => link.text())).toEqual(['Accounts', 'Transactions']);
-    expect(links.map((link) => link.attributes('href'))).toEqual(['/accounts', '/transactions']);
+    expect(links.map(link => link.text())).toEqual(['Accounts', 'Transactions']);
+    expect(links.map(link => link.attributes('href'))).toEqual(['/accounts', '/transactions']);
   });
 
   it('marks only the link for the current page as active', async () => {
