@@ -3,11 +3,13 @@ import type { ErrorDetails, ResponseWrapper } from '@/types/api';
 export class ApiError extends Error {
   readonly status: number;
   readonly error: ErrorDetails;
+  readonly requestId: string | undefined;
 
-  constructor(status: number, error: ErrorDetails) {
+  constructor(status: number, error: ErrorDetails, requestId?: string) {
     super(error.message);
     this.status = status;
     this.error = error;
+    this.requestId = requestId;
   }
 }
 
@@ -37,6 +39,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       typeof body.error === 'object' && body.error !== null
         ? body.error
         : { errorCode: 'UNKNOWN_ERROR', message: response.statusText },
+      body.requestId,
     );
   }
 

@@ -57,6 +57,7 @@ describe('api client', () => {
     await expect(call).rejects.toBeInstanceOf(ApiError);
     await expect(call).rejects.toMatchObject({
       status: 409,
+      requestId: 'req-3',
       error: { errorCode: 'ACC_003', field: 'code' },
     });
   });
@@ -68,6 +69,7 @@ describe('api client', () => {
 
     await expect(call).rejects.toMatchObject({
       status: 500,
+      requestId: 'req-4',
       error: { errorCode: 'UNKNOWN_ERROR' },
     });
   });
