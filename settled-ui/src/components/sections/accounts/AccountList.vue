@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { ApiError } from '@/api/client';
 import { useAccountsStore } from '@/stores/accounts';
 
 import BaseMessage from '@/components/base/BaseMessage.vue';
+import { toErrorMessage } from '@/utils/toErrorMessage';
 const accountsStore = useAccountsStore();
 const isLoading = ref(true);
 const errorMessage = ref<string | null>(null);
@@ -12,11 +12,7 @@ onMounted(async () => {
   try {
     await accountsStore.fetchAccounts();
   } catch (error) {
-    if (error instanceof ApiError) {
-      errorMessage.value = `API Error: ${error.message}`;
-    } else {
-      errorMessage.value = 'An unexpected error occurred.';
-    }
+    errorMessage.value = toErrorMessage(error);
   } finally {
     isLoading.value = false;
   }

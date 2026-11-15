@@ -87,6 +87,6 @@ describe('AccountList', () => {
     const wrapper = mountSection();
     await flushPromises();
 
-    expect(wrapper.text()).toContain('An unexpected error occurred');
+    expect(wrapper.text()).toContain('Could not reach the server');
   });
 });

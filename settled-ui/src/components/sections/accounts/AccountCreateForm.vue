@@ -10,6 +10,7 @@ import BaseInput from '@/components/base/BaseInput.vue';
 import BaseSelect from '@/components/base/BaseSelect.vue';
 import BaseMessage from '@/components/base/BaseMessage.vue';
 import FormField from '@/components/composite/FormField.vue';
+import { toErrorMessage } from '@/utils/toErrorMessage';
 
 const accountsStore = useAccountsStore();
 
@@ -35,10 +36,8 @@ async function submit() {
       );
     } else if (e instanceof ApiError && e.error.field) {
       fieldErrors.value = { [e.error.field]: e.error.message };
-    } else if (e instanceof ApiError) {
-      formError.value = e.error.message;
     } else {
-      formError.value = 'Could not reach the server';
+      formError.value = toErrorMessage(e);
     }
   } finally {
     isSubmitting.value = false;

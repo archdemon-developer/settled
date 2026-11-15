@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { ApiError } from '@/api/client';
+import { toErrorMessage } from '@/utils/toErrorMessage';
 
 import { useAccountsStore } from '@/stores/accounts';
 import BaseButton from '@/components/base/BaseButton.vue';
@@ -18,15 +18,11 @@ const isLoading = ref(true);
 const isArchiving = ref(false);
 const errorMessage = ref<string | null>();
 
-function toMessage(e: unknown): string {
-  return e instanceof ApiError ? e.error.message : 'Could not reach the server';
-}
-
 onMounted(async () => {
   try {
     await accountsStore.fetchAccount(props.accountId);
-  } catch (e) {
-    errorMessage.value = toMessage(e);
+  } catch (error) {
+    errorMessage.value = toErrorMessage(error);
   } finally {
     isLoading.value = false;
   }
@@ -37,8 +33,8 @@ async function archive() {
   errorMessage.value = null;
   try {
     await accountsStore.archiveAccount(props.accountId);
-  } catch (e) {
-    errorMessage.value = toMessage(e);
+  } catch (error) {
+    errorMessage.value = toErrorMessage(error);
   } finally {
     isArchiving.value = false;
   }
