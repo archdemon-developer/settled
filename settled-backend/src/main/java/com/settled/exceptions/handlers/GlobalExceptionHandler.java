@@ -5,9 +5,7 @@ import com.settled.exceptions.SettledException;
 import com.settled.models.ErrorDetails;
 import com.settled.models.FieldViolation;
 import com.settled.models.ResponseWrapper;
-import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,15 +30,8 @@ public class GlobalExceptionHandler {
                 .field(ex.getField())
                 .build();
 
-        ResponseWrapper<?> response = ResponseWrapper.builder()
-                .status("ERROR")
-                .code(errorCode.getHttpStatus().value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .error(errorDetails)
-                .build();
-
-        return new ResponseEntity<>(response, errorCode.getHttpStatus());
+        return new ResponseEntity<>(
+                ResponseWrapper.error(errorCode.getHttpStatus().value(), errorDetails), errorCode.getHttpStatus());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -53,15 +44,8 @@ public class GlobalExceptionHandler {
                 .details("Request body is missing, is not valid JSON, or contains an invalid value")
                 .build();
 
-        ResponseWrapper<?> response = ResponseWrapper.builder()
-                .status("ERROR")
-                .code(ErrorCode.MALFORMED_REQUEST.getHttpStatus().value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .error(errorDetails)
-                .build();
-
-        return new ResponseEntity<>(response, ErrorCode.MALFORMED_REQUEST.getHttpStatus());
+        HttpStatus status = ErrorCode.MALFORMED_REQUEST.getHttpStatus();
+        return new ResponseEntity<>(ResponseWrapper.error(status.value(), errorDetails), status);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -75,15 +59,8 @@ public class GlobalExceptionHandler {
                 .field(ex.getName())
                 .build();
 
-        ResponseWrapper<?> response = ResponseWrapper.builder()
-                .status("ERROR")
-                .code(ErrorCode.INVALID_PARAMETER.getHttpStatus().value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .error(errorDetails)
-                .build();
-
-        return new ResponseEntity<>(response, ErrorCode.INVALID_PARAMETER.getHttpStatus());
+        HttpStatus status = ErrorCode.INVALID_PARAMETER.getHttpStatus();
+        return new ResponseEntity<>(ResponseWrapper.error(status.value(), errorDetails), status);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -101,15 +78,8 @@ public class GlobalExceptionHandler {
                 .violations(violations)
                 .build();
 
-        ResponseWrapper<?> response = ResponseWrapper.builder()
-                .status("ERROR")
-                .code(HttpStatus.BAD_REQUEST.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .error(errorDetails)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        HttpStatus status = ErrorCode.VALIDATION_ERROR.getHttpStatus();
+        return new ResponseEntity<>(ResponseWrapper.error(status.value(), errorDetails), status);
     }
 
     @ExceptionHandler(Exception.class)
@@ -121,14 +91,8 @@ public class GlobalExceptionHandler {
                 .message("An unexpected error occurred")
                 .build();
 
-        ResponseWrapper<?> response = ResponseWrapper.builder()
-                .status("ERROR")
-                .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .error(errorDetails)
-                .build();
-
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(
+                ResponseWrapper.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), errorDetails),
+                HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

@@ -1,6 +1,7 @@
 package com.settled.models.requests;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.settled.constants.DateTimeFormats;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -28,6 +29,9 @@ public class CreateTransactionRequest {
 
     @NotNull(message = "Posted at timestamp is required")
     @Schema(description = "Transaction date in UTC", example = "2026-10-09T14:35:00.000Z")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = DateTimeFormats.UTC_TIMESTAMP_PATTERN,
+            timezone = DateTimeFormats.UTC)
     private Instant postedAt;
 }

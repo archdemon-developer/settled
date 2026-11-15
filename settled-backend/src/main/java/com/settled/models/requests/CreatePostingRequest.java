@@ -3,6 +3,7 @@ package com.settled.models.requests;
 import com.settled.enums.PostingDirection;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -24,6 +25,7 @@ public class CreatePostingRequest {
     private UUID accountId;
 
     @NotNull(message = "Amount is required")
+    @Digits(integer = 15, fraction = 4, message = "Amount must have at most 4 decimal places")
     @DecimalMin(value = "0.01", message = "Amount must be greater than zero")
     @Schema(description = "Posting amount", example = "1000.50")
     private BigDecimal amount;

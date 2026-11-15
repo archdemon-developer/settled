@@ -1,5 +1,7 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import BasePageTitle from '@/components/base/BasePageTitle.vue';
+</script>
 
 <template>
-  <h2 class="text-xl font-semibold text-slate-900">Transactions</h2>
+  <BasePageTitle>Transactions</BasePageTitle>
 </template>

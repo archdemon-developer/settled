@@ -1,6 +1,5 @@
 package com.settled.models.entities;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.settled.enums.AccountStatus;
 import com.settled.enums.AccountType;
 import jakarta.persistence.Column;
@@ -15,12 +14,14 @@ import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Builder
 @Table(name = "accounts")
@@ -49,11 +50,9 @@ public class Account {
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private Instant createdAt;
 
     @UpdateTimestamp
     @Column
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private Instant updatedAt;
 }

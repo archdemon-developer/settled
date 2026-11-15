@@ -1,6 +1,5 @@
 package com.settled.models.entities;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.settled.enums.PostingDirection;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,11 +17,13 @@ import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Builder
 @Table(name = "postings")
@@ -51,6 +52,5 @@ public class Posting {
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private Instant createdAt;
 }

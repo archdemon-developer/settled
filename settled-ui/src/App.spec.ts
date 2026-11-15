@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia } from 'pinia';
-import * as accountsApi from './api/accounts';
-import { router } from './router';
+import * as accountsApi from '@/api/accounts';
+import { router } from '@/router';
 import App from './App.vue';
 
-vi.mock('./api/accounts');
+vi.mock('@/api/accounts');
 
 async function mountAppAt(path: string) {
   await router.push(path);

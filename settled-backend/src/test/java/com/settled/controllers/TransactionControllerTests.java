@@ -1,6 +1,7 @@
 package com.settled.controllers;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -20,6 +21,7 @@ import com.settled.services.LedgerService;
 import com.settled.services.TransactionService;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -56,10 +58,11 @@ class TransactionControllerTests {
                 .postedAt(now)
                 .build();
 
-        TransactionResponse response = TransactionResponse.builder()
+        TransactionDetailResponse response = TransactionDetailResponse.builder()
                 .id(txnId)
                 .reference("TXN001")
                 .description("Test Transaction")
+                .postings(new ArrayList<>())
                 .status(TransactionStatus.DRAFT)
                 .postedAt(now)
                 .createdAt(now)
@@ -74,6 +77,7 @@ class TransactionControllerTests {
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.code").value(201))
                 .andExpect(jsonPath("$.data.id").value(txnId.toString()))
+                .andExpect(jsonPath("$.data.postings.length()").value(0))
                 .andExpect(jsonPath("$.data.reference").value("TXN001"))
                 .andExpect(jsonPath("$.data.status").value("DRAFT"))
                 .andExpect(jsonPath("$.requestId").exists());
@@ -86,10 +90,17 @@ class TransactionControllerTests {
         UUID txnId = UUID.randomUUID();
         Instant now = Instant.now();
 
-        TransactionResponse response = TransactionResponse.builder()
+        TransactionDetailResponse response = TransactionDetailResponse.builder()
                 .id(txnId)
                 .reference("TXN001")
                 .description("Test Transaction")
+                .postings(List.of(PostingResponse.builder()
+                        .id(UUID.randomUUID())
+                        .accountId(UUID.randomUUID())
+                        .amount(new BigDecimal("100.00"))
+                        .direction(PostingDirection.DEBIT)
+                        .createdAt(now)
+                        .build()))
                 .status(TransactionStatus.DRAFT)
                 .postedAt(now)
                 .createdAt(now)
@@ -104,7 +115,8 @@ class TransactionControllerTests {
                 .andExpect(jsonPath("$.data.id").value(txnId.toString()))
                 .andExpect(jsonPath("$.data.reference").value("TXN001"))
                 .andExpect(jsonPath("$.data.status").value("DRAFT"))
-                .andExpect(jsonPath("$.requestId").exists());
+                .andExpect(jsonPath("$.requestId").exists())
+                .andExpect(jsonPath("$.data.postings.length()").value(1));
 
         verify(transactionService).getById(txnId);
     }
@@ -150,10 +162,17 @@ class TransactionControllerTests {
         UUID txnId = UUID.randomUUID();
         Instant now = Instant.now();
 
-        TransactionResponse response = TransactionResponse.builder()
+        TransactionDetailResponse response = TransactionDetailResponse.builder()
                 .id(txnId)
                 .reference("TXN001")
                 .status(TransactionStatus.POSTED)
+                .postings(List.of(PostingResponse.builder()
+                        .accountId(UUID.randomUUID())
+                        .amount(BigDecimal.valueOf(100.5000))
+                        .direction(PostingDirection.DEBIT)
+                        .id(UUID.randomUUID())
+                        .createdAt(now)
+                        .build()))
                 .postedAt(now)
                 .createdAt(now)
                 .updatedAt(now)
@@ -165,6 +184,7 @@ class TransactionControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.postings.length()").value(1))
                 .andExpect(jsonPath("$.data.status").value("POSTED"))
                 .andExpect(jsonPath("$.requestId").exists());
 
@@ -187,9 +207,15 @@ class TransactionControllerTests {
                 .id(txnId)
                 .reference("TXN001")
                 .status(TransactionStatus.DRAFT)
+                .postings(List.of(PostingResponse.builder()
+                        .accountId(accountId)
+                        .amount(request.getAmount())
+                        .direction(request.getDirection())
+                        .id(UUID.randomUUID())
+                        .createdAt(now)
+                        .build()))
                 .postedAt(now)
                 .createdAt(now)
-                .postings(List.of())
                 .build();
 
         when(ledgerService.addPosting(txnId, request)).thenReturn(response);
@@ -201,10 +227,11 @@ class TransactionControllerTests {
                 .andExpect(jsonPath("$.status").value("SUCCESS"))
                 .andExpect(jsonPath("$.code").value(201))
                 .andExpect(jsonPath("$.data.id").value(txnId.toString()))
+                .andExpect(jsonPath("$.data.postings.length()").value(1))
                 .andExpect(jsonPath("$.data.status").value("DRAFT"))
                 .andExpect(jsonPath("$.requestId").exists());
 
-        verify(ledgerService).addPosting(txnId, request);
+        verify(ledgerService, times(1)).addPosting(txnId, request);
     }
 
     @Test

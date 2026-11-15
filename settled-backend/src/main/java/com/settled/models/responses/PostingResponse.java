@@ -1,6 +1,7 @@
 package com.settled.models.responses;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.settled.constants.DateTimeFormats;
 import com.settled.enums.PostingDirection;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -23,6 +24,9 @@ public class PostingResponse {
 
     private PostingDirection direction;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = DateTimeFormats.UTC_TIMESTAMP_PATTERN,
+            timezone = DateTimeFormats.UTC)
     private Instant createdAt;
 }

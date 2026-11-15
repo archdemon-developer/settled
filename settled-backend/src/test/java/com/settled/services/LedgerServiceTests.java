@@ -79,7 +79,7 @@ public class LedgerServiceTests {
                 .createdAt(Instant.now())
                 .build();
 
-        when(transactionRepository.findById(txnId)).thenReturn(Optional.of(transaction));
+        when(transactionRepository.findByIdForUpdate(txnId)).thenReturn(Optional.of(transaction));
         when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
         when(postingRepository.save(any(Posting.class))).thenReturn(savedPosting);
         when(postingRepository.findByTransactionId(txnId)).thenReturn(List.of(savedPosting));
@@ -91,50 +91,51 @@ public class LedgerServiceTests {
         assertEquals("TXN001", response.getReference());
         assertEquals(TransactionStatus.DRAFT, response.getStatus());
         assertEquals(1, response.getPostings().size());
-        assertEquals(new BigDecimal("100.00"), response.getPostings().get(0).getAmount());
+        assertEquals(new BigDecimal("100.0000"), response.getPostings().get(0).getAmount());
 
-        verify(transactionRepository, times(1)).findById(txnId);
+        verify(transactionRepository, times(1)).findByIdForUpdate(txnId);
         verify(accountRepository, times(1)).findById(accountId);
         verify(postingRepository, times(1)).save(any(Posting.class));
         verify(postingRepository, times(1)).findByTransactionId(txnId);
     }
 
     @Test
-void testAddPosting_AccountArchived() {
-    UUID txnId = UUID.randomUUID();
-    UUID accountId = UUID.randomUUID();
+    void testAddPosting_AccountArchived() {
+        UUID txnId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
 
-    Transaction transaction = Transaction.builder()
-            .id(txnId)
-            .reference("TXN001")
-            .status(TransactionStatus.DRAFT)
-            .postedAt(Instant.now())
-            .createdAt(Instant.now())
-            .build();
+        Transaction transaction = Transaction.builder()
+                .id(txnId)
+                .reference("TXN001")
+                .status(TransactionStatus.DRAFT)
+                .postedAt(Instant.now())
+                .createdAt(Instant.now())
+                .build();
 
-    Account account = Account.builder()
-            .id(accountId)
-            .code("ACC001")
-            .status(AccountStatus.ARCHIVED)
-            .build();
+        Account account = Account.builder()
+                .id(accountId)
+                .code("ACC001")
+                .status(AccountStatus.ARCHIVED)
+                .build();
 
-    CreatePostingRequest request = CreatePostingRequest.builder()
-            .accountId(accountId)
-            .amount(new BigDecimal("100.00"))
-            .direction(PostingDirection.DEBIT)
-            .build();
+        CreatePostingRequest request = CreatePostingRequest.builder()
+                .accountId(accountId)
+                .amount(new BigDecimal("100.00"))
+                .direction(PostingDirection.DEBIT)
+                .build();
 
-    when(transactionRepository.findById(txnId)).thenReturn(Optional.of(transaction));
-    when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
+        when(transactionRepository.findByIdForUpdate(txnId)).thenReturn(Optional.of(transaction));
+        when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
 
-    InvalidPostingException ex =
-            assertThrows(InvalidPostingException.class, () -> ledgerService.addPosting(txnId, request));
+        InvalidPostingException ex =
+                assertThrows(InvalidPostingException.class, () -> ledgerService.addPosting(txnId, request));
 
-    assertEquals(ErrorCode.ACCOUNT_ARCHIVED, ex.getErrorCode());
+        assertEquals(ErrorCode.ACCOUNT_ARCHIVED, ex.getErrorCode());
 
-    verify(accountRepository, times(1)).findById(accountId);
-    verify(postingRepository, never()).save(any());
-}
+        verify(accountRepository, times(1)).findById(accountId);
+        verify(postingRepository, never()).save(any());
+    }
+
     @Test
     void testAddPosting_TransactionNotFound() {
         UUID txnId = UUID.randomUUID();
@@ -146,11 +147,11 @@ void testAddPosting_AccountArchived() {
                 .direction(PostingDirection.DEBIT)
                 .build();
 
-        when(transactionRepository.findById(txnId)).thenReturn(Optional.empty());
+        when(transactionRepository.findByIdForUpdate(txnId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> ledgerService.addPosting(txnId, request));
 
-        verify(transactionRepository, times(1)).findById(txnId);
+        verify(transactionRepository, times(1)).findByIdForUpdate(txnId);
         verify(accountRepository, never()).findById(any());
         verify(postingRepository, never()).save(any());
     }
@@ -174,11 +175,11 @@ void testAddPosting_AccountArchived() {
                 .direction(PostingDirection.DEBIT)
                 .build();
 
-        when(transactionRepository.findById(txnId)).thenReturn(Optional.of(transaction));
+        when(transactionRepository.findByIdForUpdate(txnId)).thenReturn(Optional.of(transaction));
 
         assertThrows(InvalidPostingException.class, () -> ledgerService.addPosting(txnId, request));
 
-        verify(transactionRepository, times(1)).findById(txnId);
+        verify(transactionRepository, times(1)).findByIdForUpdate(txnId);
         verify(accountRepository, never()).findById(any());
         verify(postingRepository, never()).save(any());
     }
@@ -202,12 +203,12 @@ void testAddPosting_AccountArchived() {
                 .direction(PostingDirection.DEBIT)
                 .build();
 
-        when(transactionRepository.findById(txnId)).thenReturn(Optional.of(transaction));
+        when(transactionRepository.findByIdForUpdate(txnId)).thenReturn(Optional.of(transaction));
         when(accountRepository.findById(accountId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> ledgerService.addPosting(txnId, request));
 
-        verify(transactionRepository, times(1)).findById(txnId);
+        verify(transactionRepository, times(1)).findByIdForUpdate(txnId);
         verify(accountRepository, times(1)).findById(accountId);
         verify(postingRepository, never()).save(any());
     }

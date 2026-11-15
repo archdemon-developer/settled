@@ -32,7 +32,7 @@ public class LedgerService {
     public TransactionDetailResponse addPosting(UUID transactionId, CreatePostingRequest request) {
 
         Transaction transaction = transactionRepository
-                .findById(transactionId)
+                .findByIdForUpdate(transactionId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         ErrorCode.TRANSACTION_NOT_FOUND,
                         String.format("Transaction with ID '%s' not found", transactionId)));

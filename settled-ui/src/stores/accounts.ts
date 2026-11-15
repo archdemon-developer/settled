@@ -1,18 +1,13 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
-import type { Account, CreateAccountRequest, Transaction } from '../types/api';
-import * as accountsApi from '../api/accounts';
+import type { Account, CreateAccountRequest } from '@/types/api';
+import * as accountsApi from '@/api/accounts';
 
-export const useLedgerStore = defineStore('ledger', () => {
+export const useAccountsStore = defineStore('accounts', () => {
   const accounts = ref<Account[]>([]);
-  const transactions = ref<Transaction[]>([]);
 
   const activeAccounts = computed(() =>
-    accounts.value.filter((account) => account.status === 'ACTIVE'),
-  );
-
-  const draftTransactions = computed(() =>
-    transactions.value.filter((transaction) => transaction.status === 'DRAFT'),
+    accounts.value.filter(account => account.status === 'ACTIVE'),
   );
 
   function setAccounts(next: Account[]) {
@@ -21,14 +16,6 @@ export const useLedgerStore = defineStore('ledger', () => {
 
   function addAccount(account: Account) {
     accounts.value.push(account);
-  }
-
-  function setTransactions(next: Transaction[]) {
-    transactions.value = next;
-  }
-
-  function addTransaction(transaction: Transaction) {
-    transactions.value.push(transaction);
   }
 
   async function fetchAccounts(): Promise<void> {
@@ -44,7 +31,7 @@ export const useLedgerStore = defineStore('ledger', () => {
 
   async function archiveAccount(accountId: string): Promise<Account> {
     const archivedAccount = await accountsApi.archiveAccount(accountId);
-    const index = accounts.value.findIndex((account) => account.id === accountId);
+    const index = accounts.value.findIndex(account => account.id === accountId);
     if (index !== -1) {
       accounts.value[index] = archivedAccount;
     }
@@ -53,7 +40,7 @@ export const useLedgerStore = defineStore('ledger', () => {
 
   async function fetchAccount(accountId: string): Promise<Account> {
     const account = await accountsApi.getAccount(accountId);
-    const index = accounts.value.findIndex((a) => a.id === accountId);
+    const index = accounts.value.findIndex(a => a.id === accountId);
     if (index === -1) {
       addAccount(account);
     } else {
@@ -64,13 +51,9 @@ export const useLedgerStore = defineStore('ledger', () => {
 
   return {
     accounts,
-    transactions,
     activeAccounts,
-    draftTransactions,
     setAccounts,
     addAccount,
-    setTransactions,
-    addTransaction,
     fetchAccounts,
     createAccount,
     archiveAccount,

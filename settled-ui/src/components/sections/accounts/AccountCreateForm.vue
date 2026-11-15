@@ -1,0 +1,68 @@
+<script setup lang="ts">
+import { reactive, ref } from 'vue';
+import { ApiError } from '@/api/client';
+import { useAccountsStore } from '@/stores/accounts';
+import { ACCOUNT_TYPES } from '@/types/api';
+import type { AccountType } from '@/types/api';
+
+import BaseButton from '@/components/base/BaseButton.vue';
+import BaseInput from '@/components/base/BaseInput.vue';
+import BaseSelect from '@/components/base/BaseSelect.vue';
+import BaseMessage from '@/components/base/BaseMessage.vue';
+import FormField from '@/components/composite/FormField.vue';
+import { toErrorMessage } from '@/utils/toErrorMessage';
+
+const accountsStore = useAccountsStore();
+
+const form = reactive({ code: '', name: '', type: 'CHECKING' as AccountType });
+const accountTypeOptions = ACCOUNT_TYPES.map(type => ({ value: type, label: type }));
+
+const fieldErrors = ref<Record<string, string>>({});
+const formError = ref<string | null>(null);
+const isSubmitting = ref(false);
+
+async function submit() {
+  fieldErrors.value = {};
+  formError.value = null;
+  isSubmitting.value = true;
+  try {
+    await accountsStore.createAccount({ ...form });
+    form.code = '';
+    form.name = '';
+  } catch (e) {
+    if (e instanceof ApiError && e.error.violations?.length) {
+      fieldErrors.value = Object.fromEntries(
+        e.error.violations.map(violation => [violation.field, violation.message]),
+      );
+    } else if (e instanceof ApiError && e.error.field) {
+      fieldErrors.value = { [e.error.field]: e.error.message };
+    } else {
+      formError.value = toErrorMessage(e);
+    }
+  } finally {
+    isSubmitting.value = false;
+  }
+}
+</script>
+
+<template>
+  <form class="flex max-w-md flex-col gap-4" @submit.prevent="submit">
+    <FormField id="account-code" label="Code" :error="fieldErrors.code" v-slot="{ id }">
+      <BaseInput :id="id" v-model="form.code" required maxlength="50" />
+    </FormField>
+
+    <FormField id="account-name" label="Name" :error="fieldErrors.name" v-slot="{ id }">
+      <BaseInput :id="id" v-model="form.name" required maxlength="255" />
+    </FormField>
+
+    <FormField id="account-type" label="Type" :error="fieldErrors.type" v-slot="{ id }">
+      <BaseSelect :id="id" v-model="form.type" :options="accountTypeOptions" />
+    </FormField>
+
+    <BaseMessage v-if="formError" tone="error">{{ formError }}</BaseMessage>
+
+    <BaseButton type="submit" :disabled="isSubmitting" class="self-start">
+      Create account
+    </BaseButton>
+  </form>
+</template>
