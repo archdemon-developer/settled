@@ -55,6 +55,17 @@ services:
     networks:
       - settled-network
     restart: unless-stopped
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.2
+    container_name: settled-keycloak
+    command: start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    ports:
+      - "8180:8080"
+    networks:
+      - settled-network
   frontend:
     build:
       context: ./settled-ui
