@@ -2,7 +2,7 @@
 
 A double-entry ledger as a service. Settled records transactions against accounts that already exist, keeps every transaction balanced (total debits equal total credits), and never deletes history.
 
-**Status:** P0 (local development foundation) is complete. Auth, idempotent posting, reversals and everything after P0 are still ahead; see [What is not built yet](#what-is-not-built-yet).
+**Status:** P0 (local development foundation) is complete. P1 (securing the ledger) has started: the authentication design is in [Architecture](#architecture), but none of it is built yet. Idempotent posting, reversals and everything after that are also ahead; see [What is not built yet](#what-is-not-built-yet).
 
 ---
 
@@ -30,6 +30,68 @@ settled/
 ├── LICENSE
 └── README.md
 ```
+
+---
+
+## Architecture
+
+Decisions behind this section are recorded in [docs/adr](docs/adr/README.md).
+
+### Today (P0)
+
+```mermaid
+flowchart LR
+  B["Browser"] --> N["nginx :3000<br/>serves the UI, proxies /api/"]
+  N --> L["Ledger API :8080<br/>Spring Boot"]
+  L --> P[("PostgreSQL")]
+```
+
+There is no authentication. Anyone who can reach the backend can call the API.
+
+### Planned (P1): auth behind a single gateway
+
+Designed, not built. See [ADR 0012](docs/adr/0012-authentication-and-authorization.md) (tokens and roles) and [ADR 0013](docs/adr/0013-edge-gateway-and-browser-sessions.md) (gateway and browser sessions).
+
+```mermaid
+flowchart TB
+  B["Browser<br/>Admin UI"]
+  M["Machine callers"]
+  N["nginx<br/>UI static files, same origin"]
+  G["Gateway<br/>the only way in"]
+  KP["Keycloak proxy<br/>/realms/settled only"]
+  K["Keycloak<br/>issues tokens"]
+  L["Ledger API<br/>validates tokens only"]
+  P[("PostgreSQL")]
+  B -->|"1 session cookie"| N
+  N --> G
+  M -->|"2 Bearer token"| G
+  M -->|"3 signed-JWT login"| KP
+  KP -->|"4 realm paths only"| K
+  G -->|"5 user login, keeps tokens"| K
+  G -->|"6 relays Bearer token"| L
+  L -->|"7 public keys, JWKS"| K
+  L -->|"8 reads and writes"| P
+```
+
+| #   | What happens                                                                                  |
+| --- | --------------------------------------------------------------------------------------------- |
+| 1   | The browser holds only an `HttpOnly` session cookie. It never sees a token.                   |
+| 2   | A machine caller sends its Bearer token to the gateway. The gateway passes it through.        |
+| 3   | A machine caller gets its token from Keycloak with a signed JWT. There is no shared secret.   |
+| 4   | The proxy exposes `/realms/settled` only. The admin console and management port stay private. |
+| 5   | The gateway logs users in (authorization code) and keeps their tokens server-side.            |
+| 6   | The gateway relays the Bearer token to the ledger.                                            |
+| 7   | The ledger fetches Keycloak's public keys to verify token signatures.                         |
+| 8   | The ledger reads and writes its data.                                                         |
+
+**Principles**
+
+- **We do not write authentication.** Keycloak is the issuer. The ledger is a resource server: it validates the JWT (signature, issuer, audience `settled-api`) and maps the role claim to `LEDGER_*` authorities. It has no login, no passwords and no sessions.
+- **The gateway is the only way in** for every caller, human or machine. It holds no domain logic: routing, login and session only. Today it has one route, to the ledger. Extracted services later add routes.
+- **The ledger always validates the token itself**, whoever sent it. The gateway is never the only check.
+- **The token contract is what ties the pieces together.** Any issuer must provide `iss`, `aud` containing `settled-api`, a stable `sub`, and a role claim yielding `LEDGER_*` authorities. Access tokens last 10 minutes.
+- **The issuer is swappable.** The same configuration keys are used in every profile and only the values change: `application-dev.yaml` holds the Keycloak values, and `application-gcp.yaml` is a keys-only placeholder. Moving human login to Google Identity Platform is a configuration change. Machine login would need a different mechanism, so the GCP issuer is not decided.
+- **Direct access is closed.** The ledger is not reachable except through the gateway, enforced by network configuration.
 
 ---
 
@@ -191,7 +253,7 @@ npm run build         # type-check + production build
 
 ## What is not built yet
 
-- Authentication and authorization
+- Authentication and authorization, including the gateway and the Keycloak setup. The design is in [Architecture](#architecture) and ADRs 0012 and 0013.
 - Idempotent posting. The `idempotency_keys` table exists, but nothing reads or writes it yet.
 - Reversals of posted transactions
 - Account balances and per-account ledger views
