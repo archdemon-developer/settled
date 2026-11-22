@@ -50,7 +50,7 @@ There is no authentication. Anyone who can reach the backend can call the API.
 
 ### Planned (P1): auth behind a single gateway
 
-Designed, not built. See [ADR 0012](docs/adr/0012-authentication-and-authorization.md) (tokens and roles) and [ADR 0013](docs/adr/0013-edge-gateway-and-browser-sessions.md) (gateway and browser sessions).
+Designed, not built. See [ADR 0012](docs/adr/0012-authentication-and-authorization.md) (tokens and roles), [ADR 0013](docs/adr/0013-edge-gateway-and-browser-sessions.md) (gateway and browser sessions) and [ADR 0014](docs/adr/0014-token-design.md) (token settings).
 
 ```mermaid
 flowchart TB
@@ -59,7 +59,7 @@ flowchart TB
   N["nginx<br/>UI static files, same origin"]
   G["Gateway<br/>the only way in"]
   KP["Keycloak proxy<br/>/realms/settled only"]
-  K["Keycloak<br/>issues tokens"]
+  K["Identity provider<br/>Keycloak in dev"]
   L["Ledger API<br/>validates tokens only"]
   P[("PostgreSQL")]
   B -->|"1 session cookie"| N
@@ -67,7 +67,7 @@ flowchart TB
   M -->|"2 Bearer token"| G
   M -->|"3 signed-JWT login"| KP
   KP -->|"4 realm paths only"| K
-  G -->|"5 user login, keeps tokens"| K
+  G -->|"5 user login via adapter, keeps tokens"| K
   G -->|"6 relays Bearer token"| L
   L -->|"7 public keys, JWKS"| K
   L -->|"8 reads and writes"| P
@@ -79,18 +79,41 @@ flowchart TB
 | 2   | A machine caller sends its Bearer token to the gateway. The gateway passes it through.        |
 | 3   | A machine caller gets its token from Keycloak with a signed JWT. There is no shared secret.   |
 | 4   | The proxy exposes `/realms/settled` only. The admin console and management port stay private. |
-| 5   | The gateway logs users in (authorization code) and keeps their tokens server-side.            |
+| 5   | The gateway signs users in via a `LoginProvider` adapter and keeps their tokens server-side.  |
 | 6   | The gateway relays the Bearer token to the ledger.                                            |
 | 7   | The ledger fetches Keycloak's public keys to verify token signatures.                         |
 | 8   | The ledger reads and writes its data.                                                         |
 
+#### Login and request flow
+
+A user's login and the requests after it. Only the sign-in step changes when the identity provider changes. Machine callers skip the login: they get a token from the identity provider with a signed JWT and send it to the gateway.
+
+```mermaid
+sequenceDiagram
+  participant V as Vue app
+  participant G as Gateway
+  participant I as Identity provider
+  participant L as Ledger
+  V->>G: post credentials over HTTPS
+  G->>I: sign in via adapter
+  I-->>G: tokens
+  G-->>V: session cookie only
+  Note over V,L: later requests
+  V->>G: API call with cookie
+  G->>L: Bearer token
+  Note over L: validates signature, iss, aud and role, keys via JWKS
+  L-->>G: response
+  G-->>V: response
+```
+
 **Principles**
 
-- **We do not write authentication.** Keycloak is the issuer. The ledger is a resource server: it validates the JWT (signature, issuer, audience `settled-api`) and maps the role claim to `LEDGER_*` authorities. It has no login, no passwords and no sessions.
+- **We do not write authentication.** The identity provider (Keycloak in dev) checks the credentials and issues the tokens. The ledger is a resource server: it validates the JWT (signature, issuer, audience) and maps the role claim to `LEDGER_*` authorities. It has no login, no passwords and no sessions.
+- **The login form is ours, in the Vue app.** It posts the credentials to the gateway over HTTPS. The gateway signs in at the identity provider through a `LoginProvider` adapter, one per provider, and keeps the tokens. The browser only ever receives a session cookie. This uses the provider's password sign-in, so there is no redirect to a provider-hosted page, and MFA support depends on the provider.
 - **The gateway is the only way in** for every caller, human or machine. It holds no domain logic: routing, login and session only. Today it has one route, to the ledger. Extracted services later add routes.
 - **The ledger always validates the token itself**, whoever sent it. The gateway is never the only check.
-- **The token contract is what ties the pieces together.** Any issuer must provide `iss`, `aud` containing `settled-api`, a stable `sub`, and a role claim yielding `LEDGER_*` authorities. Access tokens last 10 minutes.
-- **The issuer is swappable.** The same configuration keys are used in every profile and only the values change: `application-dev.yaml` holds the Keycloak values, and `application-gcp.yaml` is a keys-only placeholder. Moving human login to Google Identity Platform is a configuration change. Machine login would need a different mechanism, so the GCP issuer is not decided.
+- **The token contract is what ties the pieces together.** Any issuer must provide `iss`, an `aud` the ledger is configured to accept (`settled-api` on Keycloak), a stable `sub`, and a role claim yielding `LEDGER_*` authorities. There are three roles, `LEDGER_READ`, `LEDGER_WRITE` and `LEDGER_ADMIN`, and none implies another. Keycloak access tokens last 10 minutes.
+- **The issuer is swappable.** The same configuration keys are used in every profile and only the values change: `application-dev.yaml` holds the Keycloak values, and `application-gcp.yaml` is a keys-only placeholder. Moving human login to Google Identity Platform means a configuration change plus its `LoginProvider` adapter. Machine login would need a different mechanism, so the GCP issuer is not decided.
 - **Direct access is closed.** The ledger is not reachable except through the gateway, enforced by network configuration.
 
 ---
@@ -253,7 +276,7 @@ npm run build         # type-check + production build
 
 ## What is not built yet
 
-- Authentication and authorization, including the gateway and the Keycloak setup. The design is in [Architecture](#architecture) and ADRs 0012 and 0013.
+- Authentication and authorization, including the gateway and the Keycloak setup. The design is in [Architecture](#architecture) and ADRs 0012, 0013 and 0014.
 - Idempotent posting. The `idempotency_keys` table exists, but nothing reads or writes it yet.
 - Reversals of posted transactions
 - Account balances and per-account ledger views

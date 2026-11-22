@@ -4,11 +4,18 @@
 
 ## Context
 
-P1 secures the ledger API. Getting authentication wrong is expensive and hard to undo, so we do not build it ourselves: no password storage, no token issuing, no session handling in Settled.
+P1 secures the ledger API. Getting authentication wrong is expensive and hard to undo, so we do not write credential handling ourselves: no password storage, no token issuing, no session handling in the ledger.
 
 The issuer will change over the project's life. Locally it is Keycloak in Docker Compose (P0 to P15). A GCP deployment comes later and may use a different identity service. The ledger code must not care which one issued a token.
 
+Considered on 2026-11-22:
+
+- **Build our own authorization server** (Spring Authorization Server in a `settled-auth` service with its own database). It supplies the protocol endpoints, but we would still write login, password reset, lockout, MFA, key rotation, an admin UI, audit logging and hardening, and own the patching. That is weeks for a first version plus permanent security upkeep, on a financial ledger. **Deferred, not rejected.** The token contract below keeps the ledger, the gateway and every client unchanged if we swap the issuer later.
+- **Keycloak** for local development and **Google Identity Platform** as a candidate for GCP (see below).
+
 A one-hour spike on 2026-11-21 (Keycloak 26.8.2, a throwaway Spring Boot 4.1.2 resource server) tested the design below. Everything marked "verified" was observed there. Everything marked "not verified" was not.
+
+How users log in and where tokens live is ADR 0013. How Keycloak is tuned to issue the tokens is ADR 0014.
 
 ## Decision
 
@@ -16,15 +23,23 @@ A one-hour spike on 2026-11-21 (Keycloak 26.8.2, a throwaway Spring Boot 4.1.2 r
 
 **Token contract.** Any issuer must provide tokens with:
 
-| Claim        | Requirement                                                   | Checked by                                                               |
-| ------------ | ------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `iss`        | Equals the configured issuer URI                              | Spring, verified                                                         |
-| `aud`        | Contains `settled-api`                                        | Spring, verified (a token for another audience gets 401 `invalid_token`) |
-| `sub`        | Stable, unique id of the caller                               | Not checked, used as the principal name                                  |
-| a role claim | A list of strings. The ones Settled uses are named `LEDGER_*` | Mapped to authorities, verified                                          |
-| signature    | Verifiable from the issuer's JWKS endpoint                    | Spring, verified (RS256 by default)                                      |
+| Claim        | Requirement                                                                        | Checked by                                                               |
+| ------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `iss`        | Equals the configured issuer URI                                                   | Spring, verified                                                         |
+| `aud`        | Contains an audience the ledger is configured to accept: `settled-api` on Keycloak | Spring, verified (a token for another audience gets 401 `invalid_token`) |
+| `sub`        | Stable, unique id of the caller                                                    | Not checked, used as the principal name                                  |
+| a role claim | A list of strings yielding the roles below                                         | Mapped to authorities, verified                                          |
+| signature    | Verifiable from the issuer's JWKS endpoint                                         | Spring, verified (RS256 by default)                                      |
 
-Authority names are `LEDGER_*` (the spike used `LEDGER_READ`). The full set of roles and which endpoint needs which is decided in BE.1.3.
+**Roles.** Three, named as authorities:
+
+| Authority      | Allows                                                   |
+| -------------- | -------------------------------------------------------- |
+| `LEDGER_READ`  | Read endpoints (GET)                                     |
+| `LEDGER_WRITE` | Mutating endpoints (create, add postings, post, archive) |
+| `LEDGER_ADMIN` | Operational and administrative endpoints                 |
+
+Roles do not imply each other. A caller that needs read and write is assigned both. Each endpoint checks exactly one role. Which endpoint needs which is decided in BE.1.3. More roles are added only when a real caller needs a finer split, which is a Keycloak change plus role checks and leaves the token contract alone.
 
 **Configuration.** The same keys are used in every profile. Only the values change per issuer:
 
@@ -47,18 +62,24 @@ spring:
 - Without `authority-prefix: ""`, authorities arrive as `SCOPE_LEDGER_READ`. The empty prefix gives `LEDGER_READ`.
 - Setting both `issuer-uri` and `jwk-set-uri` means no startup request to the issuer, and `iss` is still validated.
 - Spring Boot silently ignores unknown keys. A typo here fails open to default behaviour, not with an error. See the parity test below.
-- `[realm_access][roles]` is the only Keycloak-specific value. Another issuer supplies its own claim path.
+- `audiences` and `[realm_access][roles]` are the issuer-specific values. Another issuer supplies its own audience and role claim path.
 
-**Local issuer.** Keycloak `26.8.2` in Docker Compose, `start-dev`, realm `settled`, published only on `127.0.0.1:8180`. Machine callers use a confidential client (`settled-system`) with the client credentials grant and realm roles on its service account.
+**Local issuer.** Keycloak `26.8.2` in Docker Compose, `start-dev`, realm `settled`, published only on `127.0.0.1:8180`.
+
+**Machine callers.** One confidential client per consumer (the spike used `settled-system`), the client credentials grant, and realm roles on its service account. The client authenticates with a signed JWT (private_key_jwt, RS256): there is no shared secret, and Keycloak holds only the public key. Verified: the assertion's `aud` is the realm issuer URL, a token request signed with a stranger's key is refused (`invalid_client`), and a client configured for ES256 with an RSA key gets no token. RS256 is the recorded choice. Private keys never go in the repository.
+
+**Keycloak exposure.** Only `/realms/` is reachable from outside, through the proxy in ADR 0013. The admin console (`/admin/`) and the management port (9000) are never exposed. Administration happens on an internal route or a separate hostname.
 
 **Profiles.** `application-dev.yaml` holds the Keycloak values. `application-gcp.yaml` is a placeholder with the same keys, `${...}` values with no defaults, and a comment saying it is unverified. `gcp` layers on top of `prod` (`prod,gcp`). A test asserts that both files have the same set of keys.
 
 **GCP issuer: not decided.** Two options are open, to be chosen when a GCP deployment is planned:
 
-- **A. Identity Platform plus Google service-account tokens.** A managed service. Reported, not verified: Identity Platform tokens use `https://securetoken.google.com/<projectId>` as issuer and the project id as audience, and it has no client credentials grant. Service-account tokens use `https://accounts.google.com`, so humans and machines would come from two issuers and need multi-issuer code. The UI would likely need the Firebase SDK.
-- **B. Keycloak on Cloud Run with Cloud SQL.** More to operate, but the `gcp` profile stays a pure value swap and the token contract is unchanged.
+- **A. Identity Platform plus Google service-account tokens.** A managed service. Verified from Google's documentation: its email and password sign-in API returns an ID token and a refresh token; ID tokens carry `https://securetoken.google.com/<projectId>` as issuer and the project id as audience; roles can be set as custom claims (limited to 1000 bytes, and visible only in tokens issued after they are set); TOTP MFA is supported; the Firebase Auth REST documentation's sample response shows a one-hour token. Reported, not verified: it has no client credentials grant, so machine callers would use Google service-account tokens (issuer `https://accounts.google.com`), which means two issuers and multi-issuer validation code. Its sign-in API suits a login form inside our own app, which fits ADR 0013 without further work.
+- **B. Keycloak on Cloud Run with Cloud SQL.** More to operate, but the `gcp` profile stays a pure value swap, one issuer serves humans and machines, and the token contract is unchanged. Its login path is the password grant described in ADR 0013, which would then run in production.
 
-Option B is the one that keeps the code issuer-agnostic. Option A is cheaper to run but breaks the contract above for machine callers.
+The ledger sees the same contract either way. The gateway's login adapter is the only code that differs (ADR 0013).
+
+**Explicitly not built in P1.** Our own authorization server, login or password code in the ledger, token introspection, scopes beyond roles, offline tokens, sender-constrained tokens (DPoP) and MFA. The first additions and their triggers are listed in ADR 0014.
 
 ## Findings the next tasks depend on
 
@@ -71,17 +92,17 @@ Option B is the one that keeps the code issuer-agnostic. Option A is cheaper to 
 
 **For BE.1.3 (roles and method security)**
 
-- Authorities come from the token's role claim, unprefixed. The token also carries Keycloak's own roles (`default-roles-settled`, `offline_access`, `uma_authorization`). They become authorities too and must never be used in access rules.
+- Authorities come from the token's role claim, unprefixed. The token also carries Keycloak's own roles (`default-roles-settled`, `offline_access`, `uma_authorization`). They become authorities too and must never be used in access rules. ADR 0014 removes `offline_access` from the defaults.
 
-**For FE.1.10 (UI login)**
+**For the gateway and UI login (ADR 0013)**
 
 - Keycloak's default `aud` is `account`. The realm needs an Audience mapper (included custom audience `settled-api`, added to the access token) on each client that calls the API. Without it every token is rejected.
-- Access tokens live 5 minutes by default (observed). The UI needs a refresh or re-login strategy.
-- Not spiked: the browser login flow (a public client with PKCE).
+- Keycloak's default access token lifetime is 5 minutes (observed). ADR 0014 sets the value we use.
+- Not spiked: the human login flow.
 
 ## Consequences
 
-- No credential handling in our code. A bug in Keycloak is not a bug in Settled, but patching Keycloak becomes our job. Keycloak 26.8.2-1 and 26.8.2-2 shipped a Java runtime affected by CVE-2026-114938. `26.8.2` currently resolves to a fixed build (OpenJDK 21.0.13.1); the image tag should be pinned and its Java version checked when it is bumped.
-- Realm configuration (client, role, audience mapper) lives in Keycloak, not in code. For now it is set up by hand. Exporting the realm and importing it at startup with `--import-realm` is a follow-up so that a fresh clone works without clicking.
-- Because Spring ignores unknown keys, a misspelled security key would silently weaken auth. The key-parity test catches a missing key in `application-gcp.yaml`, and the BE.1.2 integration tests must assert real behaviour (401 without a token, 401 for a wrong audience, 200 with the right authority).
+- No credential handling in the ledger. A bug in Keycloak is not a bug in Settled, but patching Keycloak becomes our job. Keycloak 26.8.2-1 and 26.8.2-2 shipped a Java runtime affected by CVE-2026-114938. `26.8.2` currently resolves to a fixed build (OpenJDK 21.0.13.1); the image tag should be pinned and its Java version checked when it is bumped.
+- Realm configuration (clients, roles, audience mapper, token settings) lives in Keycloak, not in code. For now it is set up by hand, with ADR 0014 as the checklist. Exporting the realm and importing it at startup with `--import-realm` is a follow-up so that a fresh clone works without clicking.
+- Because Spring ignores unknown keys, a misspelled security key would silently weaken auth. The key-parity test catches a missing key in `application-gcp.yaml`, and the BE.1.2 integration tests must assert real behaviour (401 without a token, 401 for a wrong audience, 403 for a missing role, 200 with the right authority).
 - The GCP choice is postponed. Until then `application-gcp.yaml` is untested and must not be deployed.
